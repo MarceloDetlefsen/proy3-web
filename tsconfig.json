@@ -5,6 +5,15 @@
     "lib": ["ES2023", "DOM"],
     "types": ["vite/client"],
     "skipLibCheck": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/commands/*": ["src/commands/*"],
+      "@/data/*": ["src/data/*"],
+      "@/gui/*": ["src/gui/*"],
+      "@/styles/*": ["src/styles/*"]
+    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",
