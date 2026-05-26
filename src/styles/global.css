@@ -1,29 +1,40 @@
+/* ─── Global — Hyprland dark theme ────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap');
+
 :root {
   color-scheme: dark;
-  font-family:
-    "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont,
-    sans-serif;
-  background:
-    radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.9), transparent 35%),
-    #020617;
-  color: #e2e8f0;
+
+  /* Palette */
+  --bg-base:     #020617;
+  --bg-deep:     #010411;
+  --blue-bright: #7dd3fc;
+  --blue-mid:    #38bdf8;
+  --blue-dim:    #0ea5e9;
+  --blue-glow:   rgba(56, 189, 248, 0.18);
+  --slate-900:   #0f172a;
+  --slate-800:   #1e293b;
+  --slate-700:   #334155;
+  --slate-400:   #94a3b8;
+  --slate-300:   #cbd5e1;
+  --slate-100:   #e2e8f0;
+  --accent:      #34d399;
+  --accent-dim:  rgba(52, 211, 153, 0.15);
+
+  /* Glass */
+  --glass-bg:     rgba(15, 23, 42, 0.55);
+  --glass-border: rgba(148, 163, 184, 0.13);
+  --glass-blur:   blur(22px);
+
+  /* Typography */
+  font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  color: var(--slate-100);
+  background: var(--bg-base);
 }
 
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-  min-height: 100vh;
-}
-
-#app {
-  min-height: 100vh;
-}
-
-* {
-  box-sizing: border-box;
-}
+html, body { height: 100%; }
+body { min-height: 100vh; overflow-x: hidden; }
+#app  { min-height: 100vh; }

@@ -1,75 +1,261 @@
+/* ─── Layout — Hyprland desktop feel ──────────────────────────────────────── */
+
+/* ── Animated wallpaper background ────────────────────────────────────────── */
 .app-shell {
+  position: relative;
   min-height: 100vh;
-  padding: 1.25rem;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1.25rem 1.25rem;
+  gap: 0.85rem;
+  overflow: hidden;
+
+  /* Layered atmospheric background */
   background:
-    linear-gradient(145deg, rgba(15, 23, 42, 0.25), rgba(2, 6, 23, 0.6)),
-    radial-gradient(circle at top left, rgba(125, 211, 252, 0.2), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.14), transparent 34%);
+    radial-gradient(ellipse 70% 55% at 15% 10%,  rgba(56,189,248,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 80%,  rgba(14, 165, 233,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 70% at 50% 50%,  rgba(2,6,23,0.92) 0%, transparent 100%),
+    linear-gradient(160deg, #010c1e 0%, #020617 45%, #030d1a 100%);
 }
 
+/* Subtle noise grain overlay */
+.app-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* Slow aurora animation */
+.app-shell::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  background:
+    radial-gradient(ellipse 40% 30% at 20% 30%, rgba(56,189,248,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 25% at 75% 65%, rgba(125,211,252,0.05) 0%, transparent 70%);
+  animation: aurora 18s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes aurora {
+  0%   { transform: translate(0%, 0%)   rotate(0deg)   scale(1); }
+  33%  { transform: translate(3%, -4%)  rotate(1.5deg) scale(1.04); }
+  66%  { transform: translate(-2%, 3%)  rotate(-1deg)  scale(0.97); }
+  100% { transform: translate(2%, -2%)  rotate(2deg)   scale(1.02); }
+}
+
+/* ── Frame container ───────────────────────────────────────────────────────── */
 .frame {
-  width: min(100%, 1100px);
-  display: grid;
-  gap: 1rem;
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1120px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
+/* ── Hyprland status bar ───────────────────────────────────────────────────── */
 .status-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.9rem 1.1rem;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 1rem;
-  background: rgba(15, 23, 42, 0.52);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.4);
+  padding: 0.6rem 1.2rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 0.9rem;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 20px 60px rgba(2, 6, 23, 0.5),
+    0 0 0 1px rgba(2,6,23,0.4);
+  animation: slideDown 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
 }
 
-.status-bar strong {
-  letter-spacing: 0.08em;
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* App icon / logo dot */
+.status-logo {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blue-bright);
+  box-shadow: 0 0 10px rgba(125,211,252,0.7);
+  animation: pulse 3s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 8px  rgba(125,211,252,0.6); }
+  50%       { box-shadow: 0 0 16px rgba(125,211,252,0.95); }
+}
+
+.status-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-size: 0.78rem;
-  color: #7dd3fc;
+  color: var(--blue-bright);
 }
 
-.status-bar span {
-  color: #cbd5e1;
-  font-size: 0.95rem;
+.status-sub {
+  font-size: 0.82rem;
+  color: var(--slate-400);
+  font-weight: 300;
 }
 
+/* Workspaces — Hyprland style dots */
+.status-workspaces {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.ws-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--slate-700);
+  transition: background 0.3s, transform 0.2s;
+}
+
+.ws-dot.active {
+  background: var(--blue-mid);
+  transform: scale(1.25);
+  box-shadow: 0 0 8px rgba(56,189,248,0.6);
+}
+
+/* Clock */
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#clock {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--slate-300);
+  letter-spacing: 0.04em;
+  min-width: 5.5rem;
+  text-align: right;
+}
+
+/* ── Terminal card (glassmorphism window) ──────────────────────────────────── */
 .terminal-card {
-  min-height: 520px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 1.5rem;
+  position: relative;
+  border: 1px solid var(--glass-border);
+  border-radius: 1.25rem;
   overflow: hidden;
-  background: rgba(2, 6, 23, 0.82);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 28px 70px rgba(2, 6, 23, 0.5);
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 -1px 0 rgba(0,0,0,0.4) inset,
+    0 40px 100px rgba(2, 6, 23, 0.65),
+    0 0 0 1px rgba(2,6,23,0.5),
+    0 0 80px rgba(56, 189, 248, 0.04);
+  animation: windowIn 0.6s cubic-bezier(0.34,1.3,0.64,1) 0.15s both;
+}
+
+@keyframes windowIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* macOS-style traffic lights (decorative) */
+.terminal-card::before {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  left: 1.1rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff5f57;
+  box-shadow:
+    20px 0 0 #febc2e,
+    40px 0 0 #28c840;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* Top edge highlight */
+.terminal-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(125,211,252,0.25) 30%,
+    rgba(125,211,252,0.12) 70%,
+    transparent
+  );
+  pointer-events: none;
+  z-index: 10;
 }
 
 .terminal-card .xterm {
-  padding: 1rem;
-  height: 100%;
+  padding: 2.5rem 1rem 1rem;
 }
 
 .terminal-card .xterm-screen {
-  border-radius: 1rem;
+  border-radius: 0 0 1rem 1rem;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .app-shell { padding: 0.75rem; gap: 0.6rem; }
+
+  .status-bar {
+    padding: 0.55rem 0.9rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .status-sub { display: none; }
+  .status-workspaces { display: none; }
+
+  .status-title { font-size: 0.7rem; }
+
+  #clock { font-size: 0.75rem; min-width: auto; }
+
+  .terminal-card { border-radius: 1rem; }
+}
+
+/* Date display */
+#date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--slate-400);
+  letter-spacing: 0.03em;
+  text-transform: capitalize;
 }
 
 @media (max-width: 640px) {
-  .app-shell {
-    padding: 0.75rem;
-  }
-
-  .status-bar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .terminal-card {
-    min-height: 420px;
-  }
+  #date { display: none; }
 }

@@ -33,24 +33,55 @@ const clockFormatter = new Intl.DateTimeFormat("es-GT", {
   minute: "2-digit",
 });
 
+const dateFormatter = new Intl.DateTimeFormat("es-GT", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+});
+
+// Workspaces — 5 dots, first one active (terminal workspace)
+const workspaceDots = Array.from({ length: 5 }, (_, i) =>
+  `<span class="ws-dot${i === 0 ? " active" : ""}"></span>`
+).join("");
+
 app.innerHTML = `
   <main class="app-shell">
-    <section class="frame" aria-label="Hypr-folio">
-      <header class="status-bar">
+    <section class="frame" aria-label="Hypr-folio terminal">
+
+      <header class="status-bar" role="banner">
         <div class="status-left">
-          <strong>hypr-folio</strong>
-          <span>portafolio en terminal</span>
+          <span class="status-logo" aria-hidden="true"></span>
+          <span class="status-title">HYPR-FOLIO</span>
+          <span class="status-sub">Marcelo Detlefsen - Full Stack Developer</span>
         </div>
-        <div id="clock" aria-live="polite"></div>
+
+        <nav class="status-workspaces" aria-label="Workspaces">
+          ${workspaceDots}
+        </nav>
+
+        <div class="status-right">
+          <time id="date" aria-live="off"></time>
+          <time id="clock" aria-live="polite"></time>
+        </div>
       </header>
-      <div class="terminal-card" id="terminal"></div>
+
+      <div class="terminal-card" id="terminal" role="main"></div>
+
     </section>
   </main>
 `;
 
+// Clock + date updater
 const clock = document.querySelector<HTMLElement>("#clock");
+const dateEl = document.querySelector<HTMLElement>("#date");
+
 if (clock !== null) {
-  const renderClock = () => { clock.textContent = clockFormatter.format(new Date()); };
+  const renderClock = () => {
+    clock.textContent = clockFormatter.format(new Date());
+    if (dateEl !== null) {
+      dateEl.textContent = dateFormatter.format(new Date());
+    }
+  };
   renderClock();
   window.setInterval(renderClock, 1000);
 }
