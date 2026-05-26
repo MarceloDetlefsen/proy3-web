@@ -92,7 +92,8 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
         const { cmd, args } = parseInput(raw);
 
         if (cmd === "clear") {
-          terminal.clear();
+          // Limpia pantalla visible + scrollback para que no quede el comando anterior arriba.
+          terminal.write("\u001b[2J\u001b[3J\u001b[H");
         } else if (cmd in registry) {
           const lines = registry[cmd].run(args);
           for (const line of lines) {
