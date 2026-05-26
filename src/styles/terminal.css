@@ -10,14 +10,20 @@
   padding: 1.25rem;
   gap: 0.75rem;
   overflow: hidden;
+  --wallpaper-image: none;
 
   /*
-   * Modo activo: fondo con imagen del directorio public/.
+   * Modo activo: wallpaper aleatorio desde public/.
    * La capa oscura mantiene legibilidad del terminal.
    */
-  background:
+  background-color: #020617;
+  background-image:
     linear-gradient(rgba(2, 6, 23, 0.55), rgba(2, 6, 23, 0.82)),
-    url("/In Rainbows.png") center center / cover no-repeat fixed;
+    var(--wallpaper-image);
+  background-position: center center, center center;
+  background-size: cover, cover;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: fixed, fixed;
 
   /*
    * Modo alternativo: fondo tipo Hyprland solo con gradientes.

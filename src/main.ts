@@ -11,6 +11,7 @@ import { cmdFastfetch } from "@/commands/fastfetch";
 import { cmdContact } from "@/commands/contact";
 import { cmdGui } from "@/commands/gui";
 import { cmdClear } from "@/commands/clear";
+import { pickRandomWallpaper } from "@/wallpapers";
 
 const registry: CommandRegistry = {
   help:      { description: "Lista todos los comandos",          run: cmdHelp },
@@ -79,6 +80,12 @@ app.innerHTML = `
     </section>
   </main>
 `;
+
+const appShell = app.querySelector<HTMLElement>(".app-shell");
+if (appShell !== null) {
+  const wallpaper = pickRandomWallpaper();
+  appShell.style.setProperty("--wallpaper-image", wallpaper === "" ? "none" : `url("${wallpaper}")`);
+}
 
 // Reloj + fecha
 const clock = document.querySelector<HTMLElement>("#clock");
