@@ -38,9 +38,9 @@
 ### Fase 3 — Sistema de comandos
 - [X] Crear el `CommandRegistry` — tipo `Record<string, Command>` con `run` y `description`
 - [X] Parser de input: separar comando de argumentos, trim, lowercase
-- [ ] Historial de comandos con flechas `↑` / `↓`
-- [ ] Autocompletado con `Tab`
-- [ ] Animación de output tipo typewriter
+- [X] Historial de comandos con flechas `↑` / `↓`
+- [X] Autocompletado con `Tab`
+- [X] Animación de output tipo typewriter
 
 ### Fase 4 — Comandos principales
 
