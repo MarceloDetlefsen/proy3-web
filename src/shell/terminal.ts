@@ -26,40 +26,50 @@ const PROMPT = `${ANSI.green}marcelo${ANSI.reset}${ANSI.dim}@${ANSI.reset}${ANSI
 
 export function bootTerminal({ host, registry }: BootOptions): Terminal {
   const terminal = new Terminal({
-    cols: 82,
-    rows: 22,
+    cols: 96,
+    rows: 28,
     cursorBlink: true,
     convertEol: true,
-    scrollback: 200,
+    scrollback: 500,
     fontFamily: '"JetBrains Mono", "SFMono-Regular", "SF Mono", Consolas, monospace',
     fontSize: 14,
+    lineHeight: 1.45,
+    letterSpacing: 0.3,
     theme: {
-      background: "#020617",
-      foreground: "#e2e8f0",
-      cursor: "#7dd3fc",
-      selectionBackground: "rgba(125, 211, 252, 0.25)",
-      black: "#0f172a",
-      blue: "#38bdf8",
-      cyan: "#67e8f9",
-      green: "#34d399",
+      background:          "#020617",
+      foreground:          "#e2e8f0",
+      cursor:              "#7dd3fc",
+      cursorAccent:        "#020617",
+      selectionBackground: "rgba(125, 211, 252, 0.22)",
+      black:   "#0f172a",
+      red:     "#fb7185",
+      green:   "#34d399",
+      yellow:  "#fde68a",
+      blue:    "#38bdf8",
       magenta: "#f0abfc",
-      red: "#fb7185",
-      white: "#e2e8f0",
-      yellow: "#fde68a",
+      cyan:    "#67e8f9",
+      white:   "#e2e8f0",
+      brightBlack:   "#1e293b",
+      brightRed:     "#fda4af",
+      brightGreen:   "#6ee7b7",
+      brightYellow:  "#fef08a",
+      brightBlue:    "#7dd3fc",
+      brightMagenta: "#f5d0fe",
+      brightCyan:    "#a5f3fc",
+      brightWhite:   "#f8fafc",
     },
   });
 
   terminal.open(host);
 
-  // ── Boot message ────────────────────────────────────────────────────────────
+  // ── Boot message ─────────────────────────────────────────────────────────────
   terminal.writeln("");
-  terminal.writeln(`${ANSI.cyan}${ANSI.bold}  hypr-folio${ANSI.reset}  ${ANSI.dim}v1.0.0${ANSI.reset}`);
-  terminal.writeln(`${ANSI.dim}  Bun + Vite + xterm.js — sin framework${ANSI.reset}`);
+  terminal.writeln(`  ${ANSI.cyan}${ANSI.bold}hypr-folio${ANSI.reset}  ${ANSI.dim}v1.0.0  —  Bun · Vite · xterm.js${ANSI.reset}`);
   terminal.writeln("");
-  terminal.writeln(`${ANSI.dim}  Escribe ${ANSI.reset}${ANSI.yellow}help${ANSI.reset}${ANSI.dim} para ver los comandos disponibles.${ANSI.reset}`);
+  terminal.writeln(`  ${ANSI.dim}Escribe ${ANSI.reset}${ANSI.yellow}help${ANSI.reset}${ANSI.dim} para ver los comandos disponibles.${ANSI.reset}`);
   terminal.writeln("");
 
-  // ── Input buffer + history ───────────────────────────────────────────────────
+  // ── Input buffer + historial ──────────────────────────────────────────────────
   let inputBuffer = "";
   const history: string[] = [];
   let historyIndex = -1;
@@ -86,7 +96,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
         } else if (cmd in registry) {
           const lines = registry[cmd].run(args);
           for (const line of lines) {
-            const color = line.color ? (ANSI[line.color] ?? "") : "";
+            const color = line.color ? (ANSI[line.color as keyof typeof ANSI] ?? "") : "";
             const bold  = line.bold  ? ANSI.bold : "";
             terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
           }
@@ -110,19 +120,18 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
       return;
     }
 
-    // Arrow Up — history prev
+    // Flecha arriba — historial anterior
     if (code === 38) {
       if (history.length === 0) return;
       historyIndex = Math.min(historyIndex + 1, history.length - 1);
       const entry = history[historyIndex];
-      // Clear current line
       terminal.write("\r" + PROMPT + " ".repeat(inputBuffer.length) + "\r" + PROMPT);
       inputBuffer = entry;
       terminal.write(inputBuffer);
       return;
     }
 
-    // Arrow Down — history next
+    // Flecha abajo — historial siguiente
     if (code === 40) {
       if (historyIndex <= 0) {
         historyIndex = -1;
@@ -138,7 +147,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
       return;
     }
 
-    // Tab — autocomplete
+    // Tab — autocompletado
     if (code === 9) {
       domEvent.preventDefault();
       const partial = inputBuffer.toLowerCase();
@@ -150,14 +159,14 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
         terminal.write(completion);
       } else if (matches.length > 1) {
         terminal.writeln("");
-        terminal.writeln(matches.join("  "));
+        terminal.writeln(`  ${matches.join("  ")}`);
         printPrompt();
         terminal.write(inputBuffer);
       }
       return;
     }
 
-    // Printable characters only
+    // Caracteres imprimibles
     if (key.length === 1 && !domEvent.ctrlKey && !domEvent.altKey) {
       inputBuffer += key;
       terminal.write(key);

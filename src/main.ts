@@ -32,17 +32,20 @@ const clockFormatter = new Intl.DateTimeFormat("es-GT", {
   hour: "2-digit",
   minute: "2-digit",
 });
-
 const dateFormatter = new Intl.DateTimeFormat("es-GT", {
   weekday: "short",
   day: "numeric",
   month: "short",
 });
 
-// Workspaces — 5 dots, first one active (terminal workspace)
-const workspaceDots = Array.from({ length: 5 }, (_, i) =>
-  `<span class="ws-dot${i === 0 ? " active" : ""}"></span>`
-).join("");
+// Workspaces: 6 dots, workspace 1 activo, 2 y 3 usados (marcados)
+const workspaceDots = Array.from({ length: 6 }, (_, i) => {
+  const cls =
+    i === 0 ? "ws-dot active" :
+    i <= 2  ? "ws-dot used"   :
+              "ws-dot";
+  return `<span class="${cls}"></span>`;
+}).join("");
 
 app.innerHTML = `
   <main class="app-shell">
@@ -52,7 +55,7 @@ app.innerHTML = `
         <div class="status-left">
           <span class="status-logo" aria-hidden="true"></span>
           <span class="status-title">HYPR-FOLIO</span>
-          <span class="status-sub">Marcelo Detlefsen - Full Stack Developer</span>
+          <span class="status-sub">Marcelo Detlefsen — Full Stack Developer</span>
         </div>
 
         <nav class="status-workspaces" aria-label="Workspaces">
@@ -65,13 +68,19 @@ app.innerHTML = `
         </div>
       </header>
 
-      <div class="terminal-card" id="terminal" role="main"></div>
+      <div class="terminal-card" id="terminal-wrapper" role="main">
+        <div class="terminal-titlebar" aria-hidden="true">
+          <span class="titlebar-icon"></span>
+          <span class="titlebar-label">marcelo@hypr-folio — zsh</span>
+        </div>
+        <div id="terminal"></div>
+      </div>
 
     </section>
   </main>
 `;
 
-// Clock + date updater
+// Reloj + fecha
 const clock = document.querySelector<HTMLElement>("#clock");
 const dateEl = document.querySelector<HTMLElement>("#date");
 
