@@ -27,7 +27,7 @@
 - [x] Instalar y configurar `xterm.js`
 - [x] Configurar `tsconfig.json` con paths alias (`@/commands`, `@/data`, etc.)
 - [x] Estructura base de carpetas (ver abajo)
-- [ ] Se implementan los tests y el formateo con lint
+- [X] Se implementan los tests y el formateo con lint
 
 ### Fase 2 — Shell del entorno Hyprland
 - [ ] Diseñar el layout: barra de estado superior (hora, usuario, distro) + ventana de terminal centrada
