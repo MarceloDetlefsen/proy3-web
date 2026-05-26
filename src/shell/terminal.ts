@@ -36,7 +36,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
     lineHeight: 1.45,
     letterSpacing: 0.3,
     theme: {
-      background:          "#020617",
+      background:          "rgba(2, 6, 23, 0)",
       foreground:          "#e2e8f0",
       cursor:              "#7dd3fc",
       cursorAccent:        "#020617",
