@@ -12,15 +12,24 @@
   overflow: hidden;
 
   /*
-   * Fondo principal — capas atmospheric sin imagen externa
-   * Inspirado en rices de Hyprland: dark navy con blooms de azul
+   * Modo activo: fondo con imagen del directorio public/.
+   * La capa oscura mantiene legibilidad del terminal.
    */
   background:
-    radial-gradient(ellipse 60% 45% at 8%  12%,  rgba(56,189,248,0.16) 0%, transparent 65%),
-    radial-gradient(ellipse 45% 35% at 92% 88%,  rgba(14,165,233,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 30% 25% at 55% 5%,   rgba(99,102,241,0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 20% 90%,  rgba(6,182,212,0.07)  0%, transparent 60%),
-    linear-gradient(175deg, #06101f 0%, #020617 40%, #030a18 100%);
+    linear-gradient(rgba(2, 6, 23, 0.55), rgba(2, 6, 23, 0.82)),
+    url("/In Rainbows.png") center center / cover no-repeat fixed;
+
+  /*
+   * Modo alternativo: fondo tipo Hyprland solo con gradientes.
+   * Descomentalo si queres volver al look original.
+   *
+   * background:
+   *   radial-gradient(ellipse 60% 45% at 8%  12%,  rgba(56,189,248,0.16) 0%, transparent 65%),
+   *   radial-gradient(ellipse 45% 35% at 92% 88%,  rgba(14,165,233,0.12) 0%, transparent 60%),
+   *   radial-gradient(ellipse 30% 25% at 55% 5%,   rgba(99,102,241,0.08) 0%, transparent 55%),
+   *   radial-gradient(ellipse 50% 40% at 20% 90%,  rgba(6,182,212,0.07)  0%, transparent 60%),
+   *   linear-gradient(175deg, #06101f 0%, #020617 40%, #030a18 100%);
+   */
 }
 
 /* Grain overlay — igual al efecto de las rices de Hyprland */
