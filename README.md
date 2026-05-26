@@ -36,8 +36,8 @@
 - [X] Responsivo básico (la ventana se adapta a móvil)
 
 ### Fase 3 — Sistema de comandos
-- [ ] Crear el `CommandRegistry` — tipo `Record<string, Command>` con `run` y `description`
-- [ ] Parser de input: separar comando de argumentos, trim, lowercase
+- [X] Crear el `CommandRegistry` — tipo `Record<string, Command>` con `run` y `description`
+- [X] Parser de input: separar comando de argumentos, trim, lowercase
 - [ ] Historial de comandos con flechas `↑` / `↓`
 - [ ] Autocompletado con `Tab`
 - [ ] Animación de output tipo typewriter
@@ -58,10 +58,18 @@
 | `open --gui` | Activa modo visual con cards |
 | `clear` | Limpia la terminal |
 
-### Fase 5 — Proyectos (contenido)
+### Fase 5 - Comando `cd` a cada uno de los proyectos a mostrar en el repositorio
+- [ ] Definir qué proyectos van a aparecer como destinos válidos de `cd`
 - [ ] Definir estructura de datos para proyectos (`@/data/projects.ts`)
-- [ ] Agregar cada proyecto: nombre, descripción, stack, capturas, link al repo
-- [ ] El comando `ls` los lee dinámicamente del array
+- [ ] Conectar `cd <proyecto>` con los datos reales del repositorio
+- [ ] Mostrar descripción breve del proyecto al entrar
+- [ ] Mostrar stack usado en cada proyecto
+- [ ] Mostrar capturas o screenshots del proyecto
+- [ ] Incluir enlace al repositorio o demo si existe
+- [ ] Manejar `cd ..` para volver al root sin perder el estado
+- [ ] Mostrar un mensaje de error claro cuando el proyecto no exista
+- [ ] Verificar que `ls` y `cd` usen la misma fuente de datos
+- [ ] Probar que la navegación entre root y proyectos sea consistente
 
 ### Fase 6 — Comando `fastfetch`
 - [ ] Diseñar ASCII art (logo personal o distro ficticia)
