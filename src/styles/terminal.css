@@ -1,0 +1,75 @@
+.app-shell {
+  min-height: 100vh;
+  padding: 1.25rem;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.25), rgba(2, 6, 23, 0.6)),
+    radial-gradient(circle at top left, rgba(125, 211, 252, 0.2), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.14), transparent 34%);
+}
+
+.frame {
+  width: min(100%, 1100px);
+  display: grid;
+  gap: 1rem;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.4);
+}
+
+.status-bar strong {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: #7dd3fc;
+}
+
+.status-bar span {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+}
+
+.terminal-card {
+  min-height: 520px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background: rgba(2, 6, 23, 0.82);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 28px 70px rgba(2, 6, 23, 0.5);
+}
+
+.terminal-card .xterm {
+  padding: 1rem;
+  height: 100%;
+}
+
+.terminal-card .xterm-screen {
+  border-radius: 1rem;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 0.75rem;
+  }
+
+  .status-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .terminal-card {
+    min-height: 420px;
+  }
+}
