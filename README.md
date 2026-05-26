@@ -30,10 +30,10 @@
 - [X] Se implementan los tests y el formateo con lint
 
 ### Fase 2 — Shell del entorno Hyprland
-- [ ] Diseñar el layout: barra de estado superior (hora, usuario, distro) + ventana de terminal centrada
-- [ ] Efecto glassmorphism en la ventana (blur, bordes redondeados, sombra)
-- [ ] Wallpaper de fondo (estático o animado)
-- [ ] Responsivo básico (la ventana se adapta a móvil)
+- [X] Diseñar el layout: barra de estado superior (hora, usuario, distro) + ventana de terminal centrada
+- [X] Efecto glassmorphism en la ventana (blur, bordes redondeados, sombra)
+- [X] Wallpaper de fondo (estático o animado)
+- [X] Responsivo básico (la ventana se adapta a móvil)
 
 ### Fase 3 — Sistema de comandos
 - [ ] Crear el `CommandRegistry` — tipo `Record<string, Command>` con `run` y `description`

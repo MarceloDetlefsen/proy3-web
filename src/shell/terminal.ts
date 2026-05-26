@@ -27,7 +27,7 @@ const PROMPT = `${ANSI.green}marcelo${ANSI.reset}${ANSI.dim}@${ANSI.reset}${ANSI
 export function bootTerminal({ host, registry }: BootOptions): Terminal {
   const terminal = new Terminal({
     cols: 96,
-    rows: 28,
+    rows: 32,
     cursorBlink: true,
     convertEol: true,
     scrollback: 500,
