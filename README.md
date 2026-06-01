@@ -2,8 +2,6 @@
 
 > Portafolio personal en forma de terminal interactiva, ambientado en un entorno Hyprland.
 
-🌐 **[Ver portafolio en vivo →](https://tu-url-aqui.vercel.app)**
-
 ---
 
 ## Stack

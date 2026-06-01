@@ -64,7 +64,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
 
   // ── Boot message ─────────────────────────────────────────────────────────────
   terminal.writeln("");
-  terminal.writeln(`  ${ANSI.cyan}${ANSI.bold}hypr-folio${ANSI.reset}  ${ANSI.dim}v1.0.0  —  Bun · Vite · xterm.js${ANSI.reset}`);
+  terminal.writeln(`  ${ANSI.cyan}${ANSI.bold}hypr-folio${ANSI.reset}  ${ANSI.dim}v1.0.0${ANSI.reset}`);
   terminal.writeln("");
   terminal.writeln(`  ${ANSI.dim}Escribe ${ANSI.reset}${ANSI.yellow}help${ANSI.reset}${ANSI.dim} para ver los comandos disponibles.${ANSI.reset}`);
   terminal.writeln("");
