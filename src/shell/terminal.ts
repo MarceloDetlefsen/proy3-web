@@ -3,6 +3,7 @@ import { Terminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
 import { parseInput } from "./parser";
 import type { CommandRegistry } from "@/commands/index";
+import { projects } from "@/data/projects";
 
 export type BootOptions = {
   host: HTMLElement
@@ -23,6 +24,35 @@ const ANSI = {
 } as const;
 
 const PROMPT = `${ANSI.green}marcelo${ANSI.reset}${ANSI.dim}@${ANSI.reset}${ANSI.cyan}hypr-folio${ANSI.reset} ${ANSI.dim}~${ANSI.reset} $ `;
+
+function completeFromCandidates(value: string, candidates: string[]): string[] {
+  const partial = value.toLowerCase();
+
+  if (partial.length === 0) {
+    return candidates;
+  }
+
+  return candidates.filter((candidate) => candidate.toLowerCase().startsWith(partial));
+}
+
+function getCdCompletionTarget(buffer: string): { partial: string; hasArgument: boolean } | null {
+  const match = buffer.match(/^cd(?:\s+(.*))?$/i);
+
+  if (match === null) {
+    return null;
+  }
+
+  const partial = (match[1] ?? "").trimStart();
+
+  return {
+    partial,
+    hasArgument: match[1] !== undefined && match[1].trim().length > 0,
+  };
+}
+
+function redrawInput(terminal: Terminal, inputBuffer: string): void {
+  terminal.write(`\r\u001b[2K${PROMPT}${inputBuffer}`);
+}
 
 export function bootTerminal({ host, registry }: BootOptions): Terminal {
   const terminal = new Terminal({
@@ -126,9 +156,9 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
       if (history.length === 0) return;
       historyIndex = Math.min(historyIndex + 1, history.length - 1);
       const entry = history[historyIndex];
-      terminal.write("\r" + PROMPT + " ".repeat(inputBuffer.length) + "\r" + PROMPT);
+      redrawInput(terminal, "");
       inputBuffer = entry;
-      terminal.write(inputBuffer);
+      redrawInput(terminal, inputBuffer);
       return;
     }
 
@@ -136,34 +166,65 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
     if (code === 40) {
       if (historyIndex <= 0) {
         historyIndex = -1;
-        terminal.write("\r" + PROMPT + " ".repeat(inputBuffer.length) + "\r" + PROMPT);
+        redrawInput(terminal, "");
         inputBuffer = "";
         return;
       }
       historyIndex--;
       const entry = history[historyIndex];
-      terminal.write("\r" + PROMPT + " ".repeat(inputBuffer.length) + "\r" + PROMPT);
+      redrawInput(terminal, "");
       inputBuffer = entry;
-      terminal.write(inputBuffer);
+      redrawInput(terminal, inputBuffer);
       return;
     }
 
     // Tab — autocompletado
     if (code === 9) {
       domEvent.preventDefault();
+
+      const cdTarget = getCdCompletionTarget(inputBuffer);
+
+      if (cdTarget !== null) {
+        const projectNames = projects.map((project) => project.name);
+        const matches = completeFromCandidates(cdTarget.partial, projectNames);
+
+        if (cdTarget.partial.length === 0) {
+          terminal.writeln("");
+          terminal.writeln(`  ${matches.join("  ")}`);
+          terminal.writeln("");
+          redrawInput(terminal, inputBuffer);
+          return;
+        }
+
+        if (matches.length === 1) {
+          inputBuffer = `cd ${matches[0]}`;
+          redrawInput(terminal, inputBuffer);
+        } else if (matches.length > 1) {
+          terminal.writeln("");
+          terminal.writeln(`  ${matches.join("  ")}`);
+          terminal.writeln("");
+          redrawInput(terminal, inputBuffer);
+        }
+
+        return;
+      }
+
       const partial = inputBuffer.toLowerCase();
       if (partial.length === 0) return;
+
       const matches = Object.keys(registry).filter((c) => c.startsWith(partial));
+
       if (matches.length === 1) {
         const completion = matches[0].slice(partial.length);
         inputBuffer += completion;
-        terminal.write(completion);
+        redrawInput(terminal, inputBuffer);
       } else if (matches.length > 1) {
         terminal.writeln("");
         terminal.writeln(`  ${matches.join("  ")}`);
-        printPrompt();
-        terminal.write(inputBuffer);
+        terminal.writeln("");
+        redrawInput(terminal, inputBuffer);
       }
+
       return;
     }
 
