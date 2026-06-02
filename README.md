@@ -108,7 +108,11 @@ hypr-folio/
 ├── tsconfig.json
 ├── vite.config.ts
 ├── public/
-│   └── wallpaper.png
+│   ├── favicon.svg
+│   ├── wallpapers/        # Fotos que rota el fondo de la terminal
+│   ├── gallery/           # Fotos de eventos
+│   ├── personal/          # Foto personal
+│   └── proyects/          # Capturas y md de proyectos
 └── src/
     ├── main.ts              # Entry point — monta xterm.js y el shell
     ├── shell.ts             # Loop principal: input → parser → registry → output

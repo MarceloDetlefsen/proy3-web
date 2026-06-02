@@ -9,32 +9,26 @@ const RESOLVED_VIRTUAL_WALLPAPERS_ID = "\0virtual:wallpapers"
 function collectWallpapers(rootDir: string): string[] {
   const supportedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif"])
 
-  const walk = (dir: string): string[] => {
-    const entries = fs.readdirSync(dir, { withFileTypes: true })
-    const files: string[] = []
+  if (!fs.existsSync(rootDir)) return []
 
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name)
-      if (entry.isDirectory()) {
-        files.push(...walk(fullPath))
-        continue
-      }
+  const entries = fs.readdirSync(rootDir, { withFileTypes: true })
+  const files: string[] = []
 
-      if (supportedExtensions.has(path.extname(entry.name).toLowerCase())) {
-        const relativePath = path.relative(rootDir, fullPath).split(path.sep).join("/")
-        files.push(`/${relativePath}`)
-      }
-    }
+  for (const entry of entries) {
+    if (!entry.isFile()) continue
 
-    return files
+    const fullPath = path.join(rootDir, entry.name)
+    if (!supportedExtensions.has(path.extname(entry.name).toLowerCase())) continue
+
+    const relativePath = path.relative(rootDir, fullPath).split(path.sep).join("/")
+    files.push(`/${relativePath}`)
   }
 
-  if (!fs.existsSync(rootDir)) return []
-  return walk(rootDir)
+  return files
 }
 
 function wallpapersPlugin() {
-  const publicDir = path.resolve(process.cwd(), "public")
+  const wallpapersDir = path.resolve(process.cwd(), "public", "wallpapers")
 
   return {
     name: "wallpapers-plugin",
@@ -44,7 +38,7 @@ function wallpapersPlugin() {
     },
     load(id: string) {
       if (id !== RESOLVED_VIRTUAL_WALLPAPERS_ID) return null
-      const wallpapers = collectWallpapers(publicDir)
+      const wallpapers = collectWallpapers(wallpapersDir)
       return `export const wallpapers = ${JSON.stringify(wallpapers)};`
     },
   }

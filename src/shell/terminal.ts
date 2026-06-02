@@ -103,9 +103,23 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
   let inputBuffer = "";
   const history: string[] = [];
   let historyIndex = -1;
+  let viewportSyncHandle: number | null = null;
+
+  const syncViewport = () => {
+    if (viewportSyncHandle !== null) {
+      window.cancelAnimationFrame(viewportSyncHandle);
+    }
+
+    viewportSyncHandle = window.requestAnimationFrame(() => {
+      viewportSyncHandle = null;
+      terminal.scrollToBottom();
+      terminal.focus();
+    });
+  };
 
   const printPrompt = () => terminal.write(PROMPT);
   printPrompt();
+  syncViewport();
 
   terminal.onKey(({ key, domEvent }) => {
     const code = domEvent.keyCode;
@@ -139,6 +153,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
 
       terminal.writeln("");
       printPrompt();
+      syncViewport();
       return;
     }
 
@@ -159,6 +174,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
       redrawInput(terminal, "");
       inputBuffer = entry;
       redrawInput(terminal, inputBuffer);
+      syncViewport();
       return;
     }
 
@@ -168,6 +184,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
         historyIndex = -1;
         redrawInput(terminal, "");
         inputBuffer = "";
+        syncViewport();
         return;
       }
       historyIndex--;
@@ -175,6 +192,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
       redrawInput(terminal, "");
       inputBuffer = entry;
       redrawInput(terminal, inputBuffer);
+      syncViewport();
       return;
     }
 
@@ -193,6 +211,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
           terminal.writeln(`  ${matches.join("  ")}`);
           terminal.writeln("");
           redrawInput(terminal, inputBuffer);
+          syncViewport();
           return;
         }
 
@@ -206,6 +225,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
           redrawInput(terminal, inputBuffer);
         }
 
+        syncViewport();
         return;
       }
 
@@ -225,6 +245,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
         redrawInput(terminal, inputBuffer);
       }
 
+      syncViewport();
       return;
     }
 
