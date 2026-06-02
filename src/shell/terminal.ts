@@ -1,26 +1,27 @@
 // ─── Terminal bootstrap — browser only, never imported in tests ───────────────
 import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 import { parseInput } from "./parser";
 import type { CommandRegistry } from "@/commands/index";
 import { projects } from "@/data/projects";
 
 export type BootOptions = {
-  host: HTMLElement
-  registry: CommandRegistry
-}
+  host: HTMLElement;
+  registry: CommandRegistry;
+};
 
 const ANSI = {
-  green:   "\x1b[32m",
-  cyan:    "\x1b[36m",
-  yellow:  "\x1b[33m",
-  red:     "\x1b[31m",
+  green: "\x1b[32m",
+  cyan: "\x1b[36m",
+  yellow: "\x1b[33m",
+  red: "\x1b[31m",
   magenta: "\x1b[35m",
-  blue:    "\x1b[34m",
-  white:   "\x1b[37m",
-  dim:     "\x1b[2m",
-  bold:    "\x1b[1m",
-  reset:   "\x1b[0m",
+  blue: "\x1b[34m",
+  white: "\x1b[37m",
+  dim: "\x1b[2m",
+  bold: "\x1b[1m",
+  reset: "\x1b[0m",
 } as const;
 
 const PROMPT = `${ANSI.green}marcelo${ANSI.reset}${ANSI.dim}@${ANSI.reset}${ANSI.cyan}hypr-folio${ANSI.reset} ${ANSI.dim}~${ANSI.reset} $ `;
@@ -28,10 +29,12 @@ const PROMPT = `${ANSI.green}marcelo${ANSI.reset}${ANSI.dim}@${ANSI.reset}${ANSI
 function completeFromCandidates(value: string, candidates: string[]): string[] {
   const partial = value.toLowerCase();
   if (partial.length === 0) return candidates;
-  return candidates.filter((candidate) => candidate.toLowerCase().startsWith(partial));
+  return candidates.filter((c) => c.toLowerCase().startsWith(partial));
 }
 
-function getCdCompletionTarget(buffer: string): { partial: string; hasArgument: boolean } | null {
+function getCdCompletionTarget(
+  buffer: string
+): { partial: string; hasArgument: boolean } | null {
   const match = buffer.match(/^cd(?:\s+(.*))?$/i);
   if (match === null) return null;
   const partial = (match[1] ?? "").trimStart();
@@ -45,16 +48,8 @@ function redrawInput(terminal: Terminal, inputBuffer: string): void {
   terminal.write(`\r\u001b[2K${PROMPT}${inputBuffer}`);
 }
 
-/*
- * FIX: syncViewport — el problema era que requestAnimationFrame se
- * ejecuta antes de que xterm.js termine de pintar las nuevas líneas
- * en su canvas interno. El resultado era que scrollToBottom() leía
- * un scrollHeight desactualizado y dejaba el prompt fuera de vista.
- *
- * Solución: doble rAF. El primer frame le da a xterm tiempo de
- * actualizar el DOM/canvas; el segundo frame hace el scroll cuando
- * el layout ya está estabilizado.
- */
+// Doble rAF: el primer frame deja que xterm actualice su canvas interno,
+// el segundo hace el scroll cuando el layout ya está estabilizado.
 function syncViewport(terminal: Terminal): void {
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
@@ -66,47 +61,78 @@ function syncViewport(terminal: Terminal): void {
 
 export function bootTerminal({ host, registry }: BootOptions): Terminal {
   const terminal = new Terminal({
-    cols: 96,
-    rows: 32,
+    // Sin cols/rows fijos — FitAddon los calcula según el contenedor real.
     cursorBlink: true,
     convertEol: true,
     scrollback: 500,
-    fontFamily: '"JetBrains Mono", "SFMono-Regular", "SF Mono", Consolas, monospace',
+    fontFamily:
+      '"JetBrains Mono", "SFMono-Regular", "SF Mono", Consolas, monospace',
     fontSize: 14,
     lineHeight: 1.45,
     letterSpacing: 0.3,
     theme: {
-      background:          "rgba(2, 6, 23, 0)",
-      foreground:          "#e2e8f0",
-      cursor:              "#7dd3fc",
-      cursorAccent:        "#020617",
+      background: "rgba(2, 6, 23, 0)",
+      foreground: "#e2e8f0",
+      cursor: "#7dd3fc",
+      cursorAccent: "#020617",
       selectionBackground: "rgba(125, 211, 252, 0.22)",
-      black:   "#0f172a",
-      red:     "#fb7185",
-      green:   "#34d399",
-      yellow:  "#fde68a",
-      blue:    "#38bdf8",
+      black: "#0f172a",
+      red: "#fb7185",
+      green: "#34d399",
+      yellow: "#fde68a",
+      blue: "#38bdf8",
       magenta: "#f0abfc",
-      cyan:    "#67e8f9",
-      white:   "#e2e8f0",
-      brightBlack:   "#1e293b",
-      brightRed:     "#fda4af",
-      brightGreen:   "#6ee7b7",
-      brightYellow:  "#fef08a",
-      brightBlue:    "#7dd3fc",
+      cyan: "#67e8f9",
+      white: "#e2e8f0",
+      brightBlack: "#1e293b",
+      brightRed: "#fda4af",
+      brightGreen: "#6ee7b7",
+      brightYellow: "#fef08a",
+      brightBlue: "#7dd3fc",
       brightMagenta: "#f5d0fe",
-      brightCyan:    "#a5f3fc",
-      brightWhite:   "#f8fafc",
+      brightCyan: "#a5f3fc",
+      brightWhite: "#f8fafc",
     },
   });
 
+  // ── FitAddon — ajusta cols/rows al tamaño real del contenedor ────────────────
+  const fitAddon = new FitAddon();
+  terminal.loadAddon(fitAddon);
+
   terminal.open(host);
 
-  // ── Boot message ─────────────────────────────────────────────────────────────
+  // Primer fit — el host ya tiene dimensiones en este punto.
+  fitAddon.fit();
+
+  // ResizeObserver: re-ajusta cada vez que el contenedor cambie de tamaño
+  // (ventana redimensionada, fullscreen, etc.).
+  const resizeObserver = new ResizeObserver(() => {
+    // fit() puede lanzar si el contenedor todavía no tiene dimensiones visibles.
+    try {
+      fitAddon.fit();
+      syncViewport(terminal);
+    } catch {
+      // silenciar — el siguiente resize lo arreglará.
+    }
+  });
+  resizeObserver.observe(host);
+
+  // xterm 6 no expone onDispose; limpiamos el observer al delegar dispose().
+  const disposeTerminal = terminal.dispose.bind(terminal);
+  terminal.dispose = () => {
+    resizeObserver.disconnect();
+    disposeTerminal();
+  };
+
+  // ── Boot message ──────────────────────────────────────────────────────────────
   terminal.writeln("");
-  terminal.writeln(`  ${ANSI.cyan}${ANSI.bold}hypr-folio${ANSI.reset}  ${ANSI.dim}v1.0.0${ANSI.reset}`);
+  terminal.writeln(
+    `  ${ANSI.cyan}${ANSI.bold}hypr-folio${ANSI.reset}  ${ANSI.dim}v1.0.0${ANSI.reset}`
+  );
   terminal.writeln("");
-  terminal.writeln(`  ${ANSI.dim}Escribe ${ANSI.reset}${ANSI.yellow}help${ANSI.reset}${ANSI.dim} para ver los comandos disponibles.${ANSI.reset}`);
+  terminal.writeln(
+    `  ${ANSI.dim}Escribe ${ANSI.reset}${ANSI.yellow}help${ANSI.reset}${ANSI.dim} para ver los comandos disponibles.${ANSI.reset}`
+  );
   terminal.writeln("");
 
   // ── Input buffer + historial ──────────────────────────────────────────────────
@@ -137,20 +163,22 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
         } else if (cmd in registry) {
           const lines = registry[cmd].run(args);
           for (const line of lines) {
-            const color = line.color ? (ANSI[line.color as keyof typeof ANSI] ?? "") : "";
-            const bold  = line.bold  ? ANSI.bold : "";
+            const color = line.color
+              ? (ANSI[line.color as keyof typeof ANSI] ?? "")
+              : "";
+            const bold = line.bold ? ANSI.bold : "";
             terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
           }
         } else if (cmd !== "") {
-          terminal.writeln(`${ANSI.red}hypr-folio: command not found: ${cmd}${ANSI.reset}`);
+          terminal.writeln(
+            `${ANSI.red}hypr-folio: command not found: ${cmd}${ANSI.reset}`
+          );
           terminal.writeln(`${ANSI.dim}  Prueba con 'help'${ANSI.reset}`);
         }
       }
 
       terminal.writeln("");
       printPrompt();
-      // FIX: doble rAF para que xterm termine de actualizar su canvas
-      // antes de hacer scroll, evitando que el prompt quede fuera de vista.
       syncViewport(terminal);
       return;
     }
@@ -168,9 +196,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
     if (code === 38) {
       if (history.length === 0) return;
       historyIndex = Math.min(historyIndex + 1, history.length - 1);
-      const entry = history[historyIndex];
-      redrawInput(terminal, "");
-      inputBuffer = entry;
+      inputBuffer = history[historyIndex];
       redrawInput(terminal, inputBuffer);
       syncViewport(terminal);
       return;
@@ -180,15 +206,13 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
     if (code === 40) {
       if (historyIndex <= 0) {
         historyIndex = -1;
-        redrawInput(terminal, "");
         inputBuffer = "";
+        redrawInput(terminal, "");
         syncViewport(terminal);
         return;
       }
       historyIndex--;
-      const entry = history[historyIndex];
-      redrawInput(terminal, "");
-      inputBuffer = entry;
+      inputBuffer = history[historyIndex];
       redrawInput(terminal, inputBuffer);
       syncViewport(terminal);
       return;
@@ -201,7 +225,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
       const cdTarget = getCdCompletionTarget(inputBuffer);
 
       if (cdTarget !== null) {
-        const projectNames = projects.map((project) => project.name);
+        const projectNames = projects.map((p) => p.name);
         const matches = completeFromCandidates(cdTarget.partial, projectNames);
 
         if (cdTarget.partial.length === 0) {
@@ -230,11 +254,12 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
       const partial = inputBuffer.toLowerCase();
       if (partial.length === 0) return;
 
-      const matches = Object.keys(registry).filter((c) => c.startsWith(partial));
+      const matches = Object.keys(registry).filter((c) =>
+        c.startsWith(partial)
+      );
 
       if (matches.length === 1) {
-        const completion = matches[0].slice(partial.length);
-        inputBuffer += completion;
+        inputBuffer += matches[0].slice(partial.length);
         redrawInput(terminal, inputBuffer);
       } else if (matches.length > 1) {
         terminal.writeln("");

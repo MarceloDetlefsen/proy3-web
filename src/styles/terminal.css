@@ -48,10 +48,10 @@
 }
 
 @keyframes aurora {
-  0%   { transform: translate(0%,   0%)   rotate(0deg)   scale(1); }
-  40%  { transform: translate(4%,  -5%)   rotate(2deg)   scale(1.05); }
+  0%   { transform: translate(0%,   0%)   rotate(0deg)    scale(1); }
+  40%  { transform: translate(4%,  -5%)   rotate(2deg)    scale(1.05); }
   70%  { transform: translate(-3%,  4%)   rotate(-1.5deg) scale(0.96); }
-  100% { transform: translate(2%,  -3%)   rotate(2.5deg) scale(1.03); }
+  100% { transform: translate(2%,  -3%)   rotate(2.5deg)  scale(1.03); }
 }
 
 /* ── Frame ─────────────────────────────────────────────────────────────────── */
@@ -252,27 +252,33 @@
 }
 
 /*
- * FIX: xterm.js necesita conocer exactamente el área que puede usar.
- * Con padding-top xterm calculaba sus filas sobre el alto total del
- * contenedor incluyendo el padding, y el cursor activo quedaba
- * cortado debajo del borde inferior.
+ * #terminal es el host que se le pasa a terminal.open(host).
+ * FitAddon mide offsetWidth/offsetHeight de este elemento para
+ * calcular cols y rows. Tiene que arrancar debajo de la titlebar
+ * y ocupar el resto del card exactamente — sin padding interno,
+ * porque cualquier padding le roba espacio que FitAddon no ve
+ * y vuelve a aparecer el problema del prompt cortado.
  *
- * Solución: #terminal arranca EN el borde del card (inset: 0) y
- * el wrapper interno .xterm-wrapper tiene margin-top igual a la
- * altura de la titlebar. Así xterm mide el espacio correcto.
+ * El padding visual se resuelve con el padding en .xterm (ver abajo),
+ * pero usando box-sizing: content-box xterm lo ignora para sus cálculos.
  */
 .terminal-card #terminal {
   position: absolute;
-  top: 2.4rem;   /* empieza justo debajo de la titlebar */
+  top: 2.4rem;  /* justo debajo de la titlebar */
   left: 0;
   right: 0;
   bottom: 0;
   background: transparent;
 }
 
+/*
+ * El padding visual que se ve alrededor del texto va aquí,
+ * en el elemento que xterm genera internamente. FitAddon NO
+ * usa este elemento para medir, así que no distorsiona el fit.
+ */
 .terminal-card .xterm {
   height: 100%;
-  padding: 0.5rem;
+  padding: 0.4rem 0.6rem;
   background: transparent !important;
 }
 
@@ -295,6 +301,7 @@
   background: transparent !important;
 }
 
+/* Inner glow del borde */
 .terminal-card::before {
   content: '';
   position: absolute;
