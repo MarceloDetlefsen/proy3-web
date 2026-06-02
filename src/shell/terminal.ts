@@ -27,23 +27,14 @@ const PROMPT = `${ANSI.green}marcelo${ANSI.reset}${ANSI.dim}@${ANSI.reset}${ANSI
 
 function completeFromCandidates(value: string, candidates: string[]): string[] {
   const partial = value.toLowerCase();
-
-  if (partial.length === 0) {
-    return candidates;
-  }
-
+  if (partial.length === 0) return candidates;
   return candidates.filter((candidate) => candidate.toLowerCase().startsWith(partial));
 }
 
 function getCdCompletionTarget(buffer: string): { partial: string; hasArgument: boolean } | null {
   const match = buffer.match(/^cd(?:\s+(.*))?$/i);
-
-  if (match === null) {
-    return null;
-  }
-
+  if (match === null) return null;
   const partial = (match[1] ?? "").trimStart();
-
   return {
     partial,
     hasArgument: match[1] !== undefined && match[1].trim().length > 0,
@@ -52,6 +43,25 @@ function getCdCompletionTarget(buffer: string): { partial: string; hasArgument: 
 
 function redrawInput(terminal: Terminal, inputBuffer: string): void {
   terminal.write(`\r\u001b[2K${PROMPT}${inputBuffer}`);
+}
+
+/*
+ * FIX: syncViewport — el problema era que requestAnimationFrame se
+ * ejecuta antes de que xterm.js termine de pintar las nuevas líneas
+ * en su canvas interno. El resultado era que scrollToBottom() leía
+ * un scrollHeight desactualizado y dejaba el prompt fuera de vista.
+ *
+ * Solución: doble rAF. El primer frame le da a xterm tiempo de
+ * actualizar el DOM/canvas; el segundo frame hace el scroll cuando
+ * el layout ya está estabilizado.
+ */
+function syncViewport(terminal: Terminal): void {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      terminal.scrollToBottom();
+      terminal.focus();
+    });
+  });
 }
 
 export function bootTerminal({ host, registry }: BootOptions): Terminal {
@@ -103,23 +113,10 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
   let inputBuffer = "";
   const history: string[] = [];
   let historyIndex = -1;
-  let viewportSyncHandle: number | null = null;
-
-  const syncViewport = () => {
-    if (viewportSyncHandle !== null) {
-      window.cancelAnimationFrame(viewportSyncHandle);
-    }
-
-    viewportSyncHandle = window.requestAnimationFrame(() => {
-      viewportSyncHandle = null;
-      terminal.scrollToBottom();
-      terminal.focus();
-    });
-  };
 
   const printPrompt = () => terminal.write(PROMPT);
   printPrompt();
-  syncViewport();
+  syncViewport(terminal);
 
   terminal.onKey(({ key, domEvent }) => {
     const code = domEvent.keyCode;
@@ -136,7 +133,6 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
         const { cmd, args } = parseInput(raw);
 
         if (cmd === "clear") {
-          // Limpia pantalla visible + scrollback para que no quede el comando anterior arriba.
           terminal.write("\u001b[2J\u001b[3J\u001b[H");
         } else if (cmd in registry) {
           const lines = registry[cmd].run(args);
@@ -153,7 +149,9 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
 
       terminal.writeln("");
       printPrompt();
-      syncViewport();
+      // FIX: doble rAF para que xterm termine de actualizar su canvas
+      // antes de hacer scroll, evitando que el prompt quede fuera de vista.
+      syncViewport(terminal);
       return;
     }
 
@@ -174,7 +172,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
       redrawInput(terminal, "");
       inputBuffer = entry;
       redrawInput(terminal, inputBuffer);
-      syncViewport();
+      syncViewport(terminal);
       return;
     }
 
@@ -184,7 +182,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
         historyIndex = -1;
         redrawInput(terminal, "");
         inputBuffer = "";
-        syncViewport();
+        syncViewport(terminal);
         return;
       }
       historyIndex--;
@@ -192,7 +190,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
       redrawInput(terminal, "");
       inputBuffer = entry;
       redrawInput(terminal, inputBuffer);
-      syncViewport();
+      syncViewport(terminal);
       return;
     }
 
@@ -211,7 +209,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
           terminal.writeln(`  ${matches.join("  ")}`);
           terminal.writeln("");
           redrawInput(terminal, inputBuffer);
-          syncViewport();
+          syncViewport(terminal);
           return;
         }
 
@@ -225,7 +223,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
           redrawInput(terminal, inputBuffer);
         }
 
-        syncViewport();
+        syncViewport(terminal);
         return;
       }
 
@@ -245,7 +243,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
         redrawInput(terminal, inputBuffer);
       }
 
-      syncViewport();
+      syncViewport(terminal);
       return;
     }
 
