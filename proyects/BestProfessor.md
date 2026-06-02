@@ -22,3 +22,8 @@ Proyecto academico orientado a sugerir profesores universitarios segun el perfil
 - Visualizacion de profesores recomendados.
 - Algoritmos de compatibilidad basados en atributos y relaciones entre nodos.
 - Estructura pensada para escalar a mas cursos, docentes y perfiles de usuario.
+
+## Repos
+
+https://github.com/alemanuel18/Front-Profesor-Recommendation-System.git
+https://github.com/MarceloDetlefsen/Back-Professor-Recommendation-System.git

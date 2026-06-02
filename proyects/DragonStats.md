@@ -22,3 +22,7 @@ Aplicacion movil para gestion y visualizacion de estadisticas de torneos de futb
 - Navegacion por jornadas, grupos y fase eliminatoria.
 - Listados y detalles de equipos, jugadores y partidos.
 - Estadisticas agregadas y vista moderna adaptada a Android.
+
+## Repo
+
+https://github.com/jdivass/MP_Project.git

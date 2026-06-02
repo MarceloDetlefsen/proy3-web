@@ -21,3 +21,8 @@ Conneto es una plataforma web orientada a la colaboracion entre equipos y organi
 - Arquitectura separada entre cliente y servidor.
 - Manejo de entidades de negocio, usuarios y contenido operativo.
 - Interfaz web moderna pensada para experiencia de usuario y escalabilidad.
+
+## Repos
+
+https://github.com/24750Montenegro/Conneto-front.git
+https://github.com/24750Montenegro/Conneto-back.git

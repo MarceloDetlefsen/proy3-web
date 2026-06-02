@@ -20,3 +20,7 @@ Proyecto de simulacion interactiva que reproduce el comportamiento fisico de un 
 - Simulacion con componentes graficos e interaccion en tiempo real.
 - Modelo fisico orientado a educacion y visualizacion cientifica.
 - Separacion entre calculos, renderizado y controles de la interfaz.
+
+## Repo
+
+https://github.com/eldmark/simulacionProyecto.git

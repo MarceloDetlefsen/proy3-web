@@ -26,3 +26,12 @@ Plataforma web para la gestion y compra de productos de bodega, con experiencia 
 - Control de roles y autenticacion para proteger vistas internas.
 - Arquitectura orientada a escalabilidad de catalogo, pedidos y operaciones.
 - Integracion completa entre frontend moderno y API REST.
+
+## Repos
+
+https://github.com/eldmark/bodegas-frontend.git
+https://github.com/eldmark/bodegas-backend.git
+
+## Deploy
+
+http://34.174.123.107:5173/index

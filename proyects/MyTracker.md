@@ -23,3 +23,12 @@ Aplicacion web para llevar control de series, su progreso de episodios y valorac
 - Contratos REST claros para operaciones CRUD.
 - Interfaz ligera orientada a productividad y seguimiento personal.
 - Persistencia local automatica con base de datos creada al iniciar el servidor.
+
+## Repos
+
+https://github.com/MarceloDetlefsen/frontend-proyecto1-web.git
+https://github.com/MarceloDetlefsen/backend-proyecto1-web.git
+
+# Deploy
+
+https://frontend-proyecto1-web.vercel.app/index.html

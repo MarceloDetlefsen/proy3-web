@@ -19,3 +19,7 @@ Proyecto de consola inspirado en el clasico Galaga, construido como una experien
 - Menu principal con inicio, puntajes y salida.
 - Simulacion de partida con interaccion por teclado.
 - Estructura modular con clases para la nave, pantalla y logica del juego.
+
+## Repo
+
+https://github.com/alemanuel18/Galaga_PMP.git

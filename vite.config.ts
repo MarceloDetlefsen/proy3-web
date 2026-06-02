@@ -6,7 +6,7 @@ import { defineConfig } from "vite"
 const VIRTUAL_WALLPAPERS_ID = "virtual:wallpapers"
 const RESOLVED_VIRTUAL_WALLPAPERS_ID = "\0virtual:wallpapers"
 
-function collectWallpapers(rootDir: string): string[] {
+function collectWallpapers(rootDir: string, publicPath: string): string[] {
   const supportedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif"])
 
   if (!fs.existsSync(rootDir)) return []
@@ -21,7 +21,7 @@ function collectWallpapers(rootDir: string): string[] {
     if (!supportedExtensions.has(path.extname(entry.name).toLowerCase())) continue
 
     const relativePath = path.relative(rootDir, fullPath).split(path.sep).join("/")
-    files.push(`/${relativePath}`)
+    files.push(encodeURI(`${publicPath}/${relativePath}`))
   }
 
   return files
@@ -38,7 +38,7 @@ function wallpapersPlugin() {
     },
     load(id: string) {
       if (id !== RESOLVED_VIRTUAL_WALLPAPERS_ID) return null
-      const wallpapers = collectWallpapers(wallpapersDir)
+      const wallpapers = collectWallpapers(wallpapersDir, "/wallpapers")
       return `export const wallpapers = ${JSON.stringify(wallpapers)};`
     },
   }
