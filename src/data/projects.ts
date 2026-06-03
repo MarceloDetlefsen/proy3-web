@@ -125,7 +125,6 @@ export const projects: Project[] = [
       "React 19",
       "Express",
       "TypeScript",
-      "Claude / Anthropic",
       "Prisma",
       "LibSQL",
       "SQLite",

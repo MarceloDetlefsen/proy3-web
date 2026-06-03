@@ -26,7 +26,8 @@ const ANSI = {
   reset: "\x1b[0m",
 } as const;
 
-const PROMPT = `${ANSI.green}marcelo${ANSI.reset}${ANSI.dim}@${ANSI.reset}${ANSI.cyan}hypr-folio${ANSI.reset} ${ANSI.dim}~${ANSI.reset} $ `;
+const PROMPT_PREFIX = `${ANSI.green}marcelo${ANSI.reset}${ANSI.dim}@${ANSI.reset}${ANSI.cyan}hypr-folio${ANSI.reset} ${ANSI.dim}`;
+const PROMPT_SUFFIX = `${ANSI.reset} $ `;
 
 function completeFromCandidates(value: string, candidates: string[]): string[] {
   const partial = value.toLowerCase();
@@ -46,8 +47,12 @@ function getCdCompletionTarget(
   };
 }
 
-function redrawInput(terminal: Terminal, inputBuffer: string): void {
-  terminal.write(`\r\u001b[2K${PROMPT}${inputBuffer}`);
+function buildPrompt(cwd: string): string {
+  return `${PROMPT_PREFIX}${cwd}${PROMPT_SUFFIX}`;
+}
+
+function redrawInput(terminal: Terminal, inputBuffer: string, cwd: string): void {
+  terminal.write(`\r\u001b[2K${buildPrompt(cwd)}${inputBuffer}`);
 }
 
 // Doble rAF: el primer frame deja que xterm actualice su canvas interno,
@@ -62,6 +67,7 @@ function syncViewport(terminal: Terminal): void {
 }
 
 export function bootTerminal({ host, registry, onProjectChange }: BootOptions): Terminal {
+  let currentProject: Project | null = null;
   const terminal = new Terminal({
     // Sin cols/rows fijos — FitAddon los calcula según el contenedor real.
     cursorBlink: true,
@@ -141,8 +147,9 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
   let inputBuffer = "";
   const history: string[] = [];
   let historyIndex = -1;
+  const getCwd = (): string => (currentProject === null ? "~" : `~/${currentProject.name}`);
 
-  const printPrompt = () => terminal.write(PROMPT);
+  const printPrompt = () => terminal.write(buildPrompt(getCwd()));
   printPrompt();
   syncViewport(terminal);
 
@@ -162,26 +169,51 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
 
         if (cmd === "clear") {
           terminal.write("\u001b[2J\u001b[3J\u001b[H");
-          onProjectChange?.(null);
+          onProjectChange?.(currentProject);
         } else if (cmd in registry) {
-          const lines = registry[cmd].run(args);
-          for (const line of lines) {
-            const color = line.color
-              ? (ANSI[line.color as keyof typeof ANSI] ?? "")
-              : "";
-            const bold = line.bold ? ANSI.bold : "";
-            terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
-          }
           if (cmd === "cd") {
-            const project = findProjectByIdentifier(args.join(" ").trim());
-            onProjectChange?.(project ?? null);
+            const target = args.join(" ").trim();
+
+            if (target.length > 0 && target !== ".." && currentProject !== null) {
+              terminal.writeln(
+                `${ANSI.red}cd: primero ejecuta 'cd ..' para salir de ${currentProject.title}${ANSI.reset}`
+              );
+              terminal.writeln(`${ANSI.dim}  Ahora mismo estas en ${getCwd()}${ANSI.reset}`);
+            } else {
+              const lines = registry[cmd].run(args);
+              for (const line of lines) {
+                const color = line.color
+                  ? (ANSI[line.color as keyof typeof ANSI] ?? "")
+                  : "";
+                const bold = line.bold ? ANSI.bold : "";
+                terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
+              }
+
+              if (target === "..") {
+                currentProject = null;
+                onProjectChange?.(null);
+              } else if (target.length > 0) {
+                const project = findProjectByIdentifier(target);
+                currentProject = project ?? null;
+                onProjectChange?.(project ?? null);
+              }
+            }
+          } else {
+            const lines = registry[cmd].run(args);
+            for (const line of lines) {
+              const color = line.color
+                ? (ANSI[line.color as keyof typeof ANSI] ?? "")
+                : "";
+              const bold = line.bold ? ANSI.bold : "";
+              terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
+            }
           }
         } else if (cmd !== "") {
           terminal.writeln(
             `${ANSI.red}hypr-folio: command not found: ${cmd}${ANSI.reset}`
           );
           terminal.writeln(`${ANSI.dim}  Prueba con 'help'${ANSI.reset}`);
-          onProjectChange?.(null);
+          onProjectChange?.(currentProject);
         }
       }
 
@@ -205,7 +237,7 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
       if (history.length === 0) return;
       historyIndex = Math.min(historyIndex + 1, history.length - 1);
       inputBuffer = history[historyIndex];
-      redrawInput(terminal, inputBuffer);
+      redrawInput(terminal, inputBuffer, getCwd());
       syncViewport(terminal);
       return;
     }
@@ -215,13 +247,13 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
       if (historyIndex <= 0) {
         historyIndex = -1;
         inputBuffer = "";
-        redrawInput(terminal, "");
+        redrawInput(terminal, "", getCwd());
         syncViewport(terminal);
         return;
       }
       historyIndex--;
       inputBuffer = history[historyIndex];
-      redrawInput(terminal, inputBuffer);
+      redrawInput(terminal, inputBuffer, getCwd());
       syncViewport(terminal);
       return;
     }
@@ -238,21 +270,34 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
 
         if (cdTarget.partial.length === 0) {
           terminal.writeln("");
-          terminal.writeln(`  ${matches.join("  ")}`);
+          if (currentProject === null) {
+            terminal.writeln(`  ${matches.join("  ")}`);
+          } else {
+            terminal.writeln(`  ..`);
+          }
           terminal.writeln("");
-          redrawInput(terminal, inputBuffer);
+          redrawInput(terminal, inputBuffer, getCwd());
+          syncViewport(terminal);
+          return;
+        }
+
+        if (currentProject !== null && cdTarget.partial !== "..") {
+          terminal.writeln("");
+          terminal.writeln(`  cd ..`);
+          terminal.writeln("");
+          redrawInput(terminal, inputBuffer, getCwd());
           syncViewport(terminal);
           return;
         }
 
         if (matches.length === 1) {
           inputBuffer = `cd ${matches[0]}`;
-          redrawInput(terminal, inputBuffer);
+          redrawInput(terminal, inputBuffer, getCwd());
         } else if (matches.length > 1) {
           terminal.writeln("");
           terminal.writeln(`  ${matches.join("  ")}`);
           terminal.writeln("");
-          redrawInput(terminal, inputBuffer);
+          redrawInput(terminal, inputBuffer, getCwd());
         }
 
         syncViewport(terminal);
@@ -268,12 +313,12 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
 
       if (matches.length === 1) {
         inputBuffer += matches[0].slice(partial.length);
-        redrawInput(terminal, inputBuffer);
+        redrawInput(terminal, inputBuffer, getCwd());
       } else if (matches.length > 1) {
         terminal.writeln("");
         terminal.writeln(`  ${matches.join("  ")}`);
         terminal.writeln("");
-        redrawInput(terminal, inputBuffer);
+        redrawInput(terminal, inputBuffer, getCwd());
       }
 
       syncViewport(terminal);
