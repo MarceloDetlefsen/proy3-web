@@ -8,7 +8,7 @@ export function cmdContact(_args: string[]): OutputLine[] {
     { text: "Email", bold: true, color: "yellow" },
     { text: "  marcelodetlefsen@gmail.com", color: "white" },
     { text: "", color: "dim" },
-    { text: "Links", bold: true, color: "yellow" },
+    { text: "Enlaces profesionales", bold: true, color: "yellow" },
     { text: "  GitHub:   https://github.com/MarceloDetlefsen", color: "blue" },
     {
       text: "  LinkedIn: https://www.linkedin.com/in/marcelo-detlefsen-2b170337b/",

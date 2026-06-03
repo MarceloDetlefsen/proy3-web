@@ -10,7 +10,6 @@ import type { Project } from "@/data/projects";
 import { getTechIcon } from "@/data/tech-icons";
 import { stack as globalStack } from "@/data/stack";
 import type { StackItem } from "@/data/stack";
-import type { IDecoration } from "@xterm/xterm";
 import type { SimpleIcon } from "simple-icons";
 
 export type BootOptions = {
@@ -44,9 +43,6 @@ const TECH_CHIP_HEIGHT = 28;
 const TECH_CHIP_GAP = 8;
 const TECH_IMAGE_PADDING = 8;
 const PROFILE_IMAGE_SRC = "/personal/me.jpg";
-const PROFILE_IMAGE_WIDTH_PX = 180;
-const PROFILE_IMAGE_RESERVED_ROWS = 12;
-const PROFILE_IMAGE_CELL_WIDTH = 1;
 
 type TechChip = {
   name: string;
@@ -97,6 +93,8 @@ type TerminalSnapshot = {
   lines: string[];
   project: Project | null;
 };
+
+type ViewMode = "boot" | "whoami" | "project" | "other";
 
 function captureSnapshot(terminal: Terminal, project: Project | null): TerminalSnapshot {
   const buffer = terminal.buffer.active;
@@ -406,94 +404,71 @@ function renderTechStackFallback(terminal: Terminal, chips: TechChip[]): void {
   }
 }
 
-type CellMetrics = {
-  width: number;
-};
-
-function getCellMetrics(terminal: Terminal): CellMetrics | null {
-  const rowsElement = terminal.element?.querySelector<HTMLElement>(".xterm-rows");
-  if (rowsElement === undefined || rowsElement === null || terminal.cols <= 0 || terminal.rows <= 0) {
-    return null;
-  }
-
-  const rowsRect = rowsElement.getBoundingClientRect();
-  if (rowsRect.width <= 0 || rowsRect.height <= 0) {
-    return null;
-  }
-
-  return {
-    width: rowsRect.width / terminal.cols,
-  };
+function openProfilePhoto(terminal: Terminal, src: string, caption: string): void {
+  const terminalShell = terminal as TerminalShell;
+  void terminalShell.showScreenshot(src, caption, false);
+  window.setTimeout(() => terminal.focus(), 0);
 }
 
-function createProfilePhotoDecoration(terminal: Terminal): IDecoration | null {
-  const marker = terminal.registerMarker(0);
-  if (marker === undefined) {
-    return null;
-  }
-
-  const metrics = getCellMetrics(terminal);
-  const widthCells =
-    metrics === null
-      ? PROFILE_IMAGE_CELL_WIDTH
-      : Math.max(1, Math.ceil(PROFILE_IMAGE_WIDTH_PX / metrics.width));
-
-  const decoration = terminal.registerDecoration({
-    marker,
-    anchor: "left",
-    x: 0,
-    width: widthCells,
-    height: PROFILE_IMAGE_RESERVED_ROWS,
-  });
-
-  if (decoration === undefined) {
-    return null;
-  }
-
-  decoration.onRender((element) => {
-    element.classList.add("profile-photo-decoration");
-    element.replaceChildren();
-
-    const image = document.createElement("img");
-    image.className = "profile-photo-decoration-image";
-    image.src = PROFILE_IMAGE_SRC;
-    image.alt = "Foto de Marcelo Detlefsen";
-    image.draggable = false;
-    image.tabIndex = 0;
-    image.setAttribute("role", "button");
-    image.setAttribute("aria-label", "Ver foto de Marcelo Detlefsen");
-
-    const openProfilePhoto = () => {
-      const terminalShell = terminal as TerminalShell;
-      void terminalShell.showScreenshot(PROFILE_IMAGE_SRC, image.alt, false);
-      terminal.focus();
-    };
-
-    image.addEventListener("click", openProfilePhoto);
-    image.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openProfilePhoto();
+function registerPhotoLinkProvider(terminal: Terminal): () => void {
+  const disposable = terminal.registerLinkProvider({
+    provideLinks(y, callback) {
+      const line = terminal.buffer.active.getLine(y - 1);
+      if (line === undefined) {
+        callback(undefined);
+        return;
       }
-    });
 
-    element.appendChild(image);
+      const text = line.translateToString(true);
+      const matches = Array.from(text.matchAll(/photo:\/\/profile/g), (match) => {
+        const startX = (match.index ?? 0) + 1;
+        const endX = startX + match[0].length;
+
+        return {
+          range: {
+            start: { x: startX, y },
+            end: { x: endX, y },
+          },
+          text: match[0],
+          activate: () => openProfilePhoto(terminal, PROFILE_IMAGE_SRC, "Foto de Marcelo Detlefsen"),
+        };
+      });
+
+      callback(matches.length > 0 ? matches : undefined);
+    },
   });
 
-  return decoration;
+  return () => disposable.dispose();
+}
+
+async function renderWhoamiImage(terminal: Terminal): Promise<void> {
+  const sequence = await buildIipSequence(PROFILE_IMAGE_SRC, "Foto de Marcelo Detlefsen", {
+    width: "52%",
+  });
+  terminal.write(sequence);
 }
 
 async function renderWhoamiDetails(
   terminal: Terminal,
   lines: OutputLine[]
 ): Promise<void> {
-  createProfilePhotoDecoration(terminal);
-
-  for (let i = 0; i < PROFILE_IMAGE_RESERVED_ROWS; i++) {
-    terminal.writeln("");
-  }
+  await renderWhoamiImage(terminal);
+  terminal.writeln("");
+  terminal.writeln("");
 
   renderLines(terminal, lines);
+}
+
+async function redrawWhoamiView(
+  terminal: Terminal,
+  lines: OutputLine[],
+  cwd: string,
+): Promise<void> {
+  terminal.write("\u001b[2J\u001b[3J\u001b[H");
+  await renderWhoamiDetails(terminal, lines);
+  terminal.writeln("");
+  terminal.write(buildPrompt(cwd));
+  syncViewport(terminal);
 }
 
 async function renderProjectDetails(terminal: Terminal, project: Project): Promise<void> {
@@ -560,6 +535,7 @@ export function bootTerminal({
   onProjectChange,
 }: BootOptions): TerminalShell {
   let currentProject: Project | null = null;
+  let currentView: ViewMode = "boot";
   const sessionStack: TerminalSnapshot[] = [];
   let screenshotSnapshot: TerminalSnapshot | null = null;
   let screenshotOpen = false;
@@ -609,6 +585,7 @@ export function bootTerminal({
     sixelSupport: false,
   }));
   const disposeLinkProvider = registerClickableLinks(terminal);
+  const disposePhotoLinkProvider = registerPhotoLinkProvider(terminal);
 
   terminal.open(host);
 
@@ -633,6 +610,7 @@ export function bootTerminal({
   terminal.dispose = () => {
     resizeObserver.disconnect();
     disposeLinkProvider();
+    disposePhotoLinkProvider();
     disposeTerminal();
   };
 
@@ -727,6 +705,13 @@ export function bootTerminal({
       return;
     }
 
+    if (currentView === "whoami" && !restoresProjectView) {
+      const lines = registry.whoami.run([]);
+      await redrawWhoamiView(terminal, lines, getCwd());
+      currentView = "whoami";
+      return;
+    }
+
     restoreSnapshot(terminal, snapshot, getCwd(), restoresProjectView);
     onProjectChange?.(currentProject);
     syncViewport(terminal);
@@ -758,6 +743,7 @@ export function bootTerminal({
         if (cmd === "clear") {
           terminal.write("\u001b[2J\u001b[3J\u001b[H");
           resetScreenshotViewer();
+          currentView = "other";
           onProjectChange?.(currentProject);
         } else if (cmd in registry) {
           if (cmd === "cd") {
@@ -778,6 +764,7 @@ export function bootTerminal({
                 if (snapshot !== undefined) {
                   currentProject = snapshot.project;
                   resetScreenshotViewer();
+                  currentView = currentProject === null ? "other" : "project";
                   onProjectChange?.(currentProject);
                   restoreSnapshot(terminal, snapshot, getCwd());
                   restoredSession = true;
@@ -785,6 +772,7 @@ export function bootTerminal({
                   renderLines(terminal, lines);
                   currentProject = null;
                   resetScreenshotViewer();
+                  currentView = "other";
                   onProjectChange?.(null);
                 }
               } else if (target.length > 0) {
@@ -793,6 +781,7 @@ export function bootTerminal({
                   sessionStack.push(captureSnapshot(terminal, currentProject));
                   currentProject = project;
                   resetScreenshotViewer();
+                  currentView = "project";
                   onProjectChange?.(project);
                   terminal.write("\u001b[2J\u001b[3J\u001b[H");
                   void renderProjectDetails(terminal, project).then(() => {
@@ -812,6 +801,7 @@ export function bootTerminal({
           } else if (cmd === "ls") {
             renderLines(terminal, getLsLines(currentProject));
           } else if (cmd === "stack") {
+            currentView = "other";
             void renderGlobalStackDetails(terminal).then(() => {
               terminal.writeln("");
               printPrompt();
@@ -820,6 +810,7 @@ export function bootTerminal({
             return;
           } else if (cmd === "whoami") {
             const lines = registry[cmd].run(args);
+            currentView = "whoami";
             void renderWhoamiDetails(terminal, lines).then(() => {
               terminal.writeln("");
               printPrompt();
@@ -828,6 +819,7 @@ export function bootTerminal({
             return;
           } else {
             const lines = registry[cmd].run(args);
+            currentView = "other";
             renderLines(terminal, lines);
           }
         } else if (cmd !== "") {
@@ -835,6 +827,7 @@ export function bootTerminal({
             `${ANSI.red}hypr-folio: command not found: ${cmd}${ANSI.reset}`
           );
           terminal.writeln(`${ANSI.dim}  Prueba con 'help'${ANSI.reset}`);
+          currentView = "other";
           onProjectChange?.(currentProject);
         }
       }
