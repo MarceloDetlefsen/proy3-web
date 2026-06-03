@@ -42,6 +42,7 @@ hypr-folio/
     │   ├── stack.ts
     │   ├── hobbies.ts
     │   ├── fastfetch.ts
+    │   ├── events.ts
     │   ├── contact.ts
     │   └── gui.ts           # Lógica del toggle GUI
     ├── data/
@@ -64,7 +65,7 @@ hypr-folio/
 
 type OutputLine = {
   text: string
-  color?: string
+  color?: "green" | "cyan" | "yellow" | "red" | "magenta" | "blue" | "white" | "dim"
   bold?: boolean
 }
 
@@ -81,23 +82,26 @@ const registry: Record<string, Command> = {
   stack:     { description: "Stack técnico con porcentajes",   run: cmdStack },
   hobbies:   { description: "Mis hobbies",                     run: cmdHobbies },
   fastfetch: { description: "Info del sistema",                run: cmdFastfetch },
+  events:    { description: "Eventos y participaciones CS",    run: cmdEvents },
   contact:   { description: "Contacto",                        run: cmdContact },
-  open:      { description: "Modo GUI (open --gui)",           run: cmdOpen },
+  open:      { description: "Modo GUI (open --gui)",           run: cmdGui },
   clear:     { description: "Limpia la terminal",              run: cmdClear },
 }
 ```
 
 ---
 
-## Reflexión del curso
+## Reflexión del proyecto
 
-*(Completar antes de la entrega final)*
+- **Audiencia objetivo:** Startups técnicas y equipos de producto que buscan un developer full-stack con criterio de arquitectura. La apuesta fue que alguien técnico llegara al portafolio y, antes de ver un solo proyecto, ya tuviera señales de cómo pienso: elegí una terminal porque el formato en sí comunica familiaridad con entornos de desarrollo, y eso dice más que cualquier badge de tecnología.
 
-- **Audiencia objetivo:**
-- **Tecnologías elegidas y por qué:**
-- **Tecnología del curso que no usé y por qué:**
-- **Dónde me arriesgué / dónde jugué seguro:**
-- **Qué mejoraría con una semana más:**
+- **Tecnologías elegidas y por qué:** Bun como runtime y package manager por velocidad y simplicidad; Vite como bundler por su DX y la posibilidad de usar plugins personalizados (el `wallpapersPlugin` que genera el módulo virtual de fondos); TypeScript para el tipado estricto del `CommandRegistry`; xterm.js para el emulador de terminal, resolviendo la duda que planteé en el foro a favor de la dependencia porque el costo de reimplementar historial, colores ANSI y resize a mano superaba con creces el peso de la librería; y CSS puro para el glassmorphism estilo Hyprland, donde un framework hubiera agregado capas de abstracción innecesarias. Sin React ni Vue porque el sistema de comandos es un registro de funciones puras que reciben `args` y retornan `OutputLine[]`, no hay estado reactivo de componentes que lo justifique, y esa decisión en sí misma es parte del portafolio.
+
+- **Tecnología del curso que no usé y por qué:** No usé ningún framework de UI. La decisión fue deliberada y está documentada en el `AGENTS.md`: agregar React o Vue hubiera introducido un modelo mental de componentes sobre un problema que no lo necesita. El `CommandRegistry` tipado con `Record<string, Command>` es más expresivo y fácil de extender que cualquier árbol de componentes para este caso.
+
+- **Dónde me arriesgué / dónde jugué seguro:** Me arriesgué al construir toda la interacción encima de xterm.js, porque nunca lo había usado y fue un reto aprender a controlarlo bien. Jugué más seguro en la estructura general porque ya conozco cómo funciona una terminal y me resultó divertido llevar esa idea al navegador.
+
+- **Qué mejoraría con una semana más:** Puliría más el manejo de imágenes, quizá con algo tipo `kitty icat` o similares para simular más aún el comportamiento real de la termianl. Pero sobre todo mejoraría `open --gui`, ya que aunque ahorita es funcional y coherente con el proyecto, no siento que todavía esté tan formal o pulido como para presentarlo como parte de un portafolio real.
 
 ---
 
