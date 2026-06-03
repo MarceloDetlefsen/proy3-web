@@ -8,6 +8,20 @@ export type Project = {
   screenshots: string[]
 }
 
+function normalizeProjectKey(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "")
+}
+
+export function findProjectByIdentifier(identifier: string): Project | undefined {
+  const normalized = normalizeProjectKey(identifier)
+
+  return projects.find((project) => {
+    const byName = normalizeProjectKey(project.name)
+    const byTitle = normalizeProjectKey(project.title)
+    return byName === normalized || byTitle === normalized
+  })
+}
+
 export const projects: Project[] = [
   {
     name: "BestProfessor",
@@ -19,7 +33,12 @@ export const projects: Project[] = [
       "https://github.com/alemanuel18/Front-Profesor-Recommendation-System.git",
       "https://github.com/MarceloDetlefsen/Back-Professor-Recommendation-System.git",
     ],
-    screenshots: [],
+    screenshots: [
+      "public/proyects/BestProfessor1.png",
+      "public/proyects/BestProfessor2.png",
+      "public/proyects/BestProfessor3.png",
+      "public/proyects/BestProfessor4.png",
+    ],
   },
   {
     name: "BodegaDeLicores",
@@ -44,7 +63,10 @@ export const projects: Project[] = [
       "https://github.com/eldmark/bodegas-backend.git",
     ],
     deploy: "http://34.174.123.107:5173/index",
-    screenshots: [],
+    screenshots: [
+      "public/proyects/BodegaDeLicores1.png",
+      "public/proyects/BodegaDeLicores2.png",
+    ],
   },
   {
     name: "CRT",
@@ -53,7 +75,10 @@ export const projects: Project[] = [
       "Proyecto de simulacion interactiva que reproduce el comportamiento fisico de un tubo de rayos catodicos y permite explorar visualmente como se mueven los electrones bajo diferentes condiciones electricas.",
     stack: ["Python", "Pygame", "NumPy", "SciPy"],
     repos: ["https://github.com/eldmark/simulacionProyecto.git"],
-    screenshots: [],
+    screenshots: [
+      "public/proyects/CRT1.png",
+      "public/proyects/CRT2.png",
+    ],
   },
   {
     name: "Conneto",
@@ -65,7 +90,10 @@ export const projects: Project[] = [
       "https://github.com/24750Montenegro/Conneto-front.git",
       "https://github.com/24750Montenegro/Conneto-back.git",
     ],
-    screenshots: [],
+    screenshots: [
+      "public/proyects/Conneto1.png",
+      "public/proyects/Conneto2.png",
+    ],
   },
   {
     name: "DragonStats",
@@ -82,7 +110,10 @@ export const projects: Project[] = [
       "Navigation Compose",
     ],
     repos: ["https://github.com/jdivass/MP_Project.git"],
-    screenshots: [],
+    screenshots: [
+      "public/proyects/DragonStats1.jpg",
+      "public/proyects/DragonStats2.jpg",
+    ],
   },
   {
     name: "EcoScan",
@@ -116,7 +147,10 @@ export const projects: Project[] = [
       "Proyecto de consola inspirado en el clasico Galaga, construido como una experiencia interactiva en terminal con pantallas decorativas, controles simples y un sistema basico de puntajes.",
     stack: ["C++", "Ncurses", "ANSI colors"],
     repos: ["https://github.com/alemanuel18/Galaga_PMP.git"],
-    screenshots: [],
+    screenshots: [
+      "public/proyects/Galaga1.png",
+      "public/proyects/Galaga2.png",
+    ],
   },
   {
     name: "HeritageRecords",
@@ -135,7 +169,11 @@ export const projects: Project[] = [
       "Docker Compose",
     ],
     repos: ["https://github.com/MarceloDetlefsen/proyecto2-db.git"],
-    screenshots: [],
+    screenshots: [
+      "public/proyects/HeritageRecords1.png",
+      "public/proyects/HeritageRecords2.png",
+      "public/proyects/HeritageRecords3.png",
+    ],
   },
   {
     name: "Impostor",
@@ -145,7 +183,10 @@ export const projects: Project[] = [
     stack: ["HTML", "CSS", "JavaScript vanilla", "Elysia", "Bun", "CSV", "Vercel", "Railway"],
     repos: ["https://github.com/MarceloDetlefsen/Impostor.git"],
     deploy: "https://impostor-gamma-dusky.vercel.app/",
-    screenshots: [],
+    screenshots: [
+      "public/proyects/Impostor1.jpg",
+      "public/proyects/Impostor2.jpg",
+    ],
   },
   {
     name: "InterpreteLisp",
@@ -154,7 +195,11 @@ export const projects: Project[] = [
       "Interprete de Lisp desarrollado como proyecto academico para procesar y evaluar expresiones del lenguaje, incluyendo operaciones aritmeticas, definicion de funciones, variables, predicados y condicionales.",
     stack: ["Java", "Maven", "JUnit"],
     repos: ["https://github.com/MarceloDetlefsen/InterpreteLisp.git"],
-    screenshots: [],
+    screenshots: [
+      "public/proyects/InterpreteLisp1.png",
+      "public/proyects/InterpreteLisp2.png",
+      "public/proyects/InterpreteLisp3.png",
+    ],
   },
   {
     name: "MyTracker",
@@ -167,6 +212,9 @@ export const projects: Project[] = [
       "https://github.com/MarceloDetlefsen/backend-proyecto1-web.git",
     ],
     deploy: "https://frontend-proyecto1-web.vercel.app/index.html",
-    screenshots: [],
+    screenshots: [
+      "public/proyects/MyTracker1.png",
+      "public/proyects/MyTracker2.png",
+    ],
   },
 ]

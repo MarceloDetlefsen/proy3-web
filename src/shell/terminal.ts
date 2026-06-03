@@ -4,11 +4,13 @@ import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 import { parseInput } from "./parser";
 import type { CommandRegistry } from "@/commands/index";
-import { projects } from "@/data/projects";
+import { findProjectByIdentifier, projects } from "@/data/projects";
+import type { Project } from "@/data/projects";
 
 export type BootOptions = {
   host: HTMLElement;
   registry: CommandRegistry;
+  onProjectChange?: (project: Project | null) => void;
 };
 
 const ANSI = {
@@ -59,7 +61,7 @@ function syncViewport(terminal: Terminal): void {
   });
 }
 
-export function bootTerminal({ host, registry }: BootOptions): Terminal {
+export function bootTerminal({ host, registry, onProjectChange }: BootOptions): Terminal {
   const terminal = new Terminal({
     // Sin cols/rows fijos — FitAddon los calcula según el contenedor real.
     cursorBlink: true,
@@ -160,6 +162,7 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
 
         if (cmd === "clear") {
           terminal.write("\u001b[2J\u001b[3J\u001b[H");
+          onProjectChange?.(null);
         } else if (cmd in registry) {
           const lines = registry[cmd].run(args);
           for (const line of lines) {
@@ -169,11 +172,16 @@ export function bootTerminal({ host, registry }: BootOptions): Terminal {
             const bold = line.bold ? ANSI.bold : "";
             terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
           }
+          if (cmd === "cd") {
+            const project = findProjectByIdentifier(args.join(" ").trim());
+            onProjectChange?.(project ?? null);
+          }
         } else if (cmd !== "") {
           terminal.writeln(
             `${ANSI.red}hypr-folio: command not found: ${cmd}${ANSI.reset}`
           );
           terminal.writeln(`${ANSI.dim}  Prueba con 'help'${ANSI.reset}`);
+          onProjectChange?.(null);
         }
       }
 

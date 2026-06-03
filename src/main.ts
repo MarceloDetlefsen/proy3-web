@@ -11,6 +11,7 @@ import { cmdFastfetch } from "@/commands/fastfetch";
 import { cmdContact } from "@/commands/contact";
 import { cmdGui } from "@/commands/gui";
 import { cmdClear } from "@/commands/clear";
+import type { Project } from "@/data/projects";
 import { pickRandomWallpaper } from "@/wallpapers";
 
 const registry: CommandRegistry = {
@@ -74,7 +75,12 @@ app.innerHTML = `
           <span class="titlebar-icon"></span>
           <span class="titlebar-label">marcelo@hypr-folio — zsh</span>
         </div>
-        <div id="terminal"></div>
+        <div class="terminal-body">
+          <div id="terminal"></div>
+          <section class="project-gallery" id="project-gallery" hidden aria-live="polite">
+            <div class="project-gallery-grid" id="project-gallery-grid"></div>
+          </section>
+        </div>
       </div>
 
     </section>
@@ -105,4 +111,31 @@ if (clock !== null) {
 const terminalHost = document.querySelector<HTMLElement>("#terminal");
 if (terminalHost === null) throw new Error("No se encontró el contenedor de la terminal.");
 
-bootTerminal({ host: terminalHost, registry });
+const galleryRoot = document.querySelector<HTMLElement>("#project-gallery");
+const galleryGrid = document.querySelector<HTMLElement>("#project-gallery-grid");
+
+function renderGallery(project: Project | null): void {
+  if (galleryRoot === null || galleryGrid === null) {
+    return;
+  }
+
+  if (project === null) {
+    galleryRoot.hidden = true;
+    galleryGrid.replaceChildren();
+    return;
+  }
+
+  galleryRoot.hidden = false;
+  galleryGrid.replaceChildren(
+    ...project.screenshots.map((screenshot, index) => {
+      const img = document.createElement("img");
+      img.src = `/${screenshot.replace(/^public\//, "")}`;
+      img.alt = `${project.title} screenshot ${index + 1}`;
+      img.loading = "lazy";
+      img.draggable = false;
+      return img;
+    }),
+  );
+}
+
+bootTerminal({ host: terminalHost, registry, onProjectChange: renderGallery });

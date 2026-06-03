@@ -180,6 +180,8 @@
 /* ── Ventana de terminal ───────────────────────────────────────────────────── */
 .terminal-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   border: 1px solid rgba(125, 211, 252, 0.28);
@@ -199,6 +201,16 @@
     0 0 60px rgba(56,189,248,0.03);
 
   animation: windowIn 0.55s cubic-bezier(0.34,1.2,0.64,1) 0.1s both;
+}
+
+.terminal-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding-top: 2.4rem;
 }
 
 @keyframes windowIn {
@@ -251,6 +263,38 @@
   z-index: 30;
 }
 
+.project-gallery {
+  flex: 0 0 auto;
+  padding: 0.8rem 1rem 1rem;
+  border-top: 1px solid rgba(125, 211, 252, 0.12);
+  background:
+    linear-gradient(180deg, rgba(2,6,23,0.08), rgba(2,6,23,0.24));
+  overflow: hidden;
+}
+
+.project-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  max-height: 34vh;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.project-gallery-grid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  background: rgba(2, 6, 23, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(2, 6, 23, 0.35) inset,
+    0 12px 28px rgba(2, 6, 23, 0.35);
+  filter: saturate(1.03) contrast(1.02);
+}
+
 /*
  * #terminal es el host que se le pasa a terminal.open(host).
  * FitAddon mide offsetWidth/offsetHeight de este elemento para
@@ -258,16 +302,11 @@
  * y ocupar el resto del card exactamente — sin padding interno,
  * porque cualquier padding le roba espacio que FitAddon no ve
  * y vuelve a aparecer el problema del prompt cortado.
- *
- * El padding visual se resuelve con el padding en .xterm (ver abajo),
- * pero usando box-sizing: content-box xterm lo ignora para sus cálculos.
  */
 .terminal-card #terminal {
-  position: absolute;
-  top: 2.4rem;  /* justo debajo de la titlebar */
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  flex: 1;
+  min-height: 0;
   background: transparent;
 }
 
@@ -278,7 +317,7 @@
  */
 .terminal-card .xterm {
   height: 100%;
-  padding: 0.4rem 0.6rem;
+  padding: 0.35rem 0.6rem 0.45rem;
   background: transparent !important;
 }
 
