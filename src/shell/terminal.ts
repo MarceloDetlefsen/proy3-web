@@ -47,6 +47,9 @@ const TECH_CHIP_HEIGHT = 28;
 const TECH_CHIP_GAP = 8;
 const TECH_IMAGE_PADDING = 8;
 const PROFILE_IMAGE_SRC = assetUrl("personal/me.jpg");
+const DEFAULT_LINE_HEIGHT = 1.45;
+const DEFAULT_FONT_SIZE = 14;
+const FASTFETCH_FONT_SIZE = 12;
 
 type TechChip = {
   name: string;
@@ -73,6 +76,14 @@ function getCdCompletionTarget(
 
 function buildPrompt(cwd: string): string {
   return `${PROMPT_PREFIX}${cwd}${PROMPT_SUFFIX}`;
+}
+
+function setLineHeight(terminal: Terminal, lineHeight: number): void {
+  terminal.options.lineHeight = lineHeight;
+}
+
+function setFontSize(terminal: Terminal, fontSize: number): void {
+  terminal.options.fontSize = fontSize;
 }
 
 function renderLines(terminal: Terminal, lines: OutputLine[]): void {
@@ -555,6 +566,7 @@ export function bootTerminal({
   let screenshotOpen = false;
   let activeScreenshotSrc: string | null = null;
   let screenshotRestoresProjectView = true;
+  let fastfetchCompactMode = false;
   const terminal = new Terminal({
     // Sin cols/rows fijos — FitAddon los calcula según el contenedor real.
     cursorBlink: true,
@@ -564,7 +576,7 @@ export function bootTerminal({
     fontFamily:
       '"JetBrains Mono", "SFMono-Regular", "SF Mono", Consolas, monospace',
     fontSize: 14,
-    lineHeight: 1.2,
+    lineHeight: 1.45,
     letterSpacing: 0.3,
     theme: {
       background: "rgba(2, 6, 23, 0)",
@@ -773,6 +785,13 @@ export function bootTerminal({
       historyIndex = -1;
       let restoredSession = false;
 
+      if (fastfetchCompactMode && raw !== "fastfetch") {
+        setLineHeight(terminal, DEFAULT_LINE_HEIGHT);
+        setFontSize(terminal, DEFAULT_FONT_SIZE);
+        fitAddon.fit();
+        fastfetchCompactMode = false;
+      }
+
       if (raw.length > 0) {
         history.unshift(raw);
         const { cmd, args } = parseInput(raw);
@@ -859,6 +878,15 @@ export function bootTerminal({
               syncViewport(terminal);
             });
             return;
+          } else if (cmd === "fastfetch") {
+            if (!fastfetchCompactMode) {
+              setFontSize(terminal, FASTFETCH_FONT_SIZE);
+              fitAddon.fit();
+              fastfetchCompactMode = true;
+            }
+            const lines = registry[cmd].run(args);
+            currentView = "other";
+            renderLines(terminal, lines);
           } else if (cmd === "whoami") {
             const lines = registry[cmd].run(args);
             currentView = "whoami";
