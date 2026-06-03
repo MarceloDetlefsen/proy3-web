@@ -3,7 +3,7 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 import { parseInput } from "./parser";
-import type { CommandRegistry } from "@/commands/index";
+import type { CommandRegistry, OutputLine } from "@/commands/index";
 import { findProjectByIdentifier, projects } from "@/data/projects";
 import type { Project } from "@/data/projects";
 
@@ -49,6 +49,24 @@ function getCdCompletionTarget(
 
 function buildPrompt(cwd: string): string {
   return `${PROMPT_PREFIX}${cwd}${PROMPT_SUFFIX}`;
+}
+
+function renderLines(terminal: Terminal, lines: OutputLine[]): void {
+  for (const line of lines) {
+    const color = line.color
+      ? (ANSI[line.color as keyof typeof ANSI] ?? "")
+      : "";
+    const bold = line.bold ? ANSI.bold : "";
+    terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
+  }
+}
+
+function getLsLines(project: Project | null): OutputLine[] {
+  if (project === null) {
+    return projects.map((item) => ({ text: `${item.name}/` }));
+  }
+
+  return [{ text: "screenshots/" }];
 }
 
 function redrawInput(terminal: Terminal, inputBuffer: string, cwd: string): void {
@@ -181,13 +199,7 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
               terminal.writeln(`${ANSI.dim}  Ahora mismo estas en ${getCwd()}${ANSI.reset}`);
             } else {
               const lines = registry[cmd].run(args);
-              for (const line of lines) {
-                const color = line.color
-                  ? (ANSI[line.color as keyof typeof ANSI] ?? "")
-                  : "";
-                const bold = line.bold ? ANSI.bold : "";
-                terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
-              }
+              renderLines(terminal, lines);
 
               if (target === "..") {
                 currentProject = null;
@@ -198,15 +210,11 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
                 onProjectChange?.(project ?? null);
               }
             }
+          } else if (cmd === "ls") {
+            renderLines(terminal, getLsLines(currentProject));
           } else {
             const lines = registry[cmd].run(args);
-            for (const line of lines) {
-              const color = line.color
-                ? (ANSI[line.color as keyof typeof ANSI] ?? "")
-                : "";
-              const bold = line.bold ? ANSI.bold : "";
-              terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
-            }
+            renderLines(terminal, lines);
           }
         } else if (cmd !== "") {
           terminal.writeln(
