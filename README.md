@@ -75,10 +75,10 @@
 - [X] Stats: OS, Shell, WM, Languages, Uptime, etc. — todos personalizados
 
 ### Fase 7 — Modo GUI (`open --gui`)
-- [ ] Toggle que renderiza una vista de cards sobre la terminal
-- [ ] Mismas secciones: proyectos, stack, hobbies, contacto
-- [ ] Botón para volver al modo terminal
-- [ ] Transición animada entre modos
+- [X] Toggle que renderiza una vista de cards sobre la terminal
+- [x] Mismas secciones: proyectos, stack, hobbies, contacto
+- [x] Botón para volver al modo terminal
+- [x] Transición animada entre modos
 
 ### Fase 8 — Comando `stack`
 - [X] Array de tecnologías con porcentaje de dominio
