@@ -114,6 +114,8 @@ if (terminalHost === null) throw new Error("No se encontró el contenedor de la 
 const galleryRoot = document.querySelector<HTMLElement>("#project-gallery");
 const galleryGrid = document.querySelector<HTMLElement>("#project-gallery-grid");
 
+const terminal = bootTerminal({ host: terminalHost, registry, onProjectChange: renderGallery });
+
 function renderGallery(project: Project | null): void {
   if (galleryRoot === null || galleryGrid === null) {
     return;
@@ -128,14 +130,25 @@ function renderGallery(project: Project | null): void {
   galleryRoot.hidden = false;
   galleryGrid.replaceChildren(
     ...project.screenshots.map((screenshot, index) => {
+      const src = `/${screenshot.replace(/^public\//, "")}`;
       const img = document.createElement("img");
-      img.src = `/${screenshot.replace(/^public\//, "")}`;
+      img.src = src;
       img.alt = `${project.title} screenshot ${index + 1}`;
       img.loading = "lazy";
       img.draggable = false;
+      img.setAttribute("role", "button");
+      img.tabIndex = 0;
+      img.setAttribute("aria-label", `Ver captura ${index + 1} de ${project.title}`);
+      img.addEventListener("click", () => {
+        void terminal.showScreenshot(src, img.alt);
+      });
+      img.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          void terminal.showScreenshot(src, img.alt);
+        }
+      });
       return img;
     }),
   );
 }
-
-bootTerminal({ host: terminalHost, registry, onProjectChange: renderGallery });

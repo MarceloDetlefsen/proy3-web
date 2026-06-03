@@ -1,6 +1,7 @@
 // ─── Terminal bootstrap — browser only, never imported in tests ───────────────
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { ImageAddon } from "@xterm/addon-image";
 import "@xterm/xterm/css/xterm.css";
 import { parseInput } from "./parser";
 import type { CommandRegistry, OutputLine } from "@/commands/index";
@@ -11,6 +12,11 @@ export type BootOptions = {
   host: HTMLElement;
   registry: CommandRegistry;
   onProjectChange?: (project: Project | null) => void;
+};
+
+export type TerminalShell = Terminal & {
+  showScreenshot: (src: string, caption: string) => Promise<void>;
+  closeScreenshot: () => void;
 };
 
 const ANSI = {
@@ -118,9 +124,40 @@ function syncViewport(terminal: Terminal): void {
   });
 }
 
-export function bootTerminal({ host, registry, onProjectChange }: BootOptions): Terminal {
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunkSize = 0x8000;
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+
+  return window.btoa(binary);
+}
+
+function utf8ToBase64(value: string): string {
+  return bytesToBase64(new TextEncoder().encode(value));
+}
+
+async function buildIipSequence(src: string, caption: string): Promise<string> {
+  const response = await fetch(src);
+  if (!response.ok) {
+    throw new Error(`No se pudo cargar ${src}`);
+  }
+
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const encodedImage = bytesToBase64(bytes);
+  const encodedName = utf8ToBase64(caption);
+
+  return `\u001b]1337;File=name=${encodedName};size=${bytes.length};inline=1;width=100%;height=100%;preserveAspectRatio=1:${encodedImage}\x07`;
+}
+
+export function bootTerminal({ host, registry, onProjectChange }: BootOptions): TerminalShell {
   let currentProject: Project | null = null;
   const sessionStack: TerminalSnapshot[] = [];
+  let screenshotSnapshot: TerminalSnapshot | null = null;
+  let screenshotOpen = false;
+  let activeScreenshotSrc: string | null = null;
   const terminal = new Terminal({
     // Sin cols/rows fijos — FitAddon los calcula según el contenedor real.
     cursorBlink: true,
@@ -159,6 +196,10 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
   // ── FitAddon — ajusta cols/rows al tamaño real del contenedor ────────────────
   const fitAddon = new FitAddon();
   terminal.loadAddon(fitAddon);
+  terminal.loadAddon(new ImageAddon({
+    showPlaceholder: false,
+    sixelSupport: false,
+  }));
 
   terminal.open(host);
 
@@ -206,8 +247,66 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
   printPrompt();
   syncViewport(terminal);
 
+  function resetScreenshotViewer(): void {
+    screenshotSnapshot = null;
+    screenshotOpen = false;
+    activeScreenshotSrc = null;
+  }
+
+  async function showScreenshot(src: string, caption: string): Promise<void> {
+    if (screenshotOpen && screenshotSnapshot !== null && src === activeScreenshotSrc) {
+      closeScreenshot();
+      return;
+    }
+
+    if (!screenshotOpen) {
+      screenshotSnapshot = captureSnapshot(terminal, currentProject);
+      screenshotOpen = true;
+    }
+
+    activeScreenshotSrc = src;
+
+    terminal.write("\u001b[2J\u001b[3J\u001b[H");
+
+    try {
+      const sequence = await buildIipSequence(src, caption);
+      terminal.write(sequence, () => {
+        syncViewport(terminal);
+      });
+    } catch {
+      terminal.writeln(`${ANSI.red}No se pudo abrir la captura.${ANSI.reset}`);
+      terminal.writeln(`${ANSI.dim}Prueba otra imagen o recarga la página.${ANSI.reset}`);
+      if (screenshotSnapshot !== null) {
+        restoreSnapshot(terminal, screenshotSnapshot, getCwd());
+      }
+      resetScreenshotViewer();
+      syncViewport(terminal);
+    }
+  }
+
+  function closeScreenshot(): void {
+    if (!screenshotOpen || screenshotSnapshot === null) {
+      return;
+    }
+
+    const snapshot = screenshotSnapshot;
+    resetScreenshotViewer();
+    activeScreenshotSrc = null;
+    restoreSnapshot(terminal, snapshot, getCwd());
+    onProjectChange?.(currentProject);
+    syncViewport(terminal);
+  }
+
   terminal.onKey(({ key, domEvent }) => {
     const code = domEvent.keyCode;
+
+    if (screenshotOpen) {
+      if (code === 27) {
+        domEvent.preventDefault();
+        closeScreenshot();
+      }
+      return;
+    }
 
     // Enter
     if (code === 13) {
@@ -223,6 +322,7 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
 
         if (cmd === "clear") {
           terminal.write("\u001b[2J\u001b[3J\u001b[H");
+          resetScreenshotViewer();
           onProjectChange?.(currentProject);
         } else if (cmd in registry) {
           if (cmd === "cd") {
@@ -242,12 +342,14 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
 
                 if (snapshot !== undefined) {
                   currentProject = snapshot.project;
+                  resetScreenshotViewer();
                   onProjectChange?.(currentProject);
                   restoreSnapshot(terminal, snapshot, getCwd());
                   restoredSession = true;
                 } else {
                   renderLines(terminal, lines);
                   currentProject = null;
+                  resetScreenshotViewer();
                   onProjectChange?.(null);
                 }
               } else if (target.length > 0) {
@@ -255,12 +357,14 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
                 if (project !== undefined) {
                   sessionStack.push(captureSnapshot(terminal, currentProject));
                   currentProject = project;
+                  resetScreenshotViewer();
                   onProjectChange?.(project);
                   terminal.write("\u001b[2J\u001b[3J\u001b[H");
                   renderLines(terminal, lines);
                 } else {
                   renderLines(terminal, lines);
                   currentProject = null;
+                  resetScreenshotViewer();
                   onProjectChange?.(null);
                 }
               }
@@ -400,5 +504,11 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     }
   });
 
-  return terminal;
+  const terminalApi = terminal as TerminalShell;
+  terminalApi.showScreenshot = showScreenshot;
+  terminalApi.closeScreenshot = closeScreenshot;
+
+  return terminalApi;
 }
+
+export type { TerminalShell as BootedTerminal };
