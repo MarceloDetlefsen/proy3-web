@@ -7,6 +7,10 @@ import { parseInput } from "./parser";
 import type { CommandRegistry, OutputLine } from "@/commands/index";
 import { findProjectByIdentifier, projects } from "@/data/projects";
 import type { Project } from "@/data/projects";
+import { getTechIcon } from "@/data/tech-icons";
+import { stack as globalStack } from "@/data/stack";
+import type { StackItem } from "@/data/stack";
+import type { SimpleIcon } from "simple-icons";
 
 export type BootOptions = {
   host: HTMLElement;
@@ -34,6 +38,15 @@ const ANSI = {
 
 const PROMPT_PREFIX = `${ANSI.green}marcelo${ANSI.reset}${ANSI.dim}@${ANSI.reset}${ANSI.cyan}hypr-folio${ANSI.reset} ${ANSI.dim}`;
 const PROMPT_SUFFIX = `${ANSI.reset} $ `;
+const TECH_IMAGE_WIDTH = 980;
+const TECH_CHIP_HEIGHT = 28;
+const TECH_CHIP_GAP = 8;
+const TECH_IMAGE_PADDING = 8;
+
+type TechChip = {
+  name: string;
+  percentage?: number;
+};
 
 function completeFromCandidates(value: string, candidates: string[]): string[] {
   const partial = value.toLowerCase();
@@ -139,6 +152,166 @@ function utf8ToBase64(value: string): string {
   return bytesToBase64(new TextEncoder().encode(value));
 }
 
+function buildIipSequenceFromBytes(
+  bytes: Uint8Array,
+  caption: string,
+  options: { width?: string; height?: string } = {}
+): string {
+  const encodedImage = bytesToBase64(bytes);
+  const encodedName = utf8ToBase64(caption);
+  const width = options.width ? `;width=${options.width}` : "";
+  const height = options.height ? `;height=${options.height}` : "";
+
+  return `\u001b]1337;File=name=${encodedName};size=${bytes.length};inline=1${width}${height};preserveAspectRatio=1:${encodedImage}\x07`;
+}
+
+function drawTechIcon(
+  ctx: CanvasRenderingContext2D,
+  icon: SimpleIcon | null,
+  name: string,
+  x: number,
+  y: number
+): void {
+  const size = 18;
+
+  if (icon === null) {
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+    ctx.fillStyle = "#7dd3fc";
+    ctx.font = "700 8px JetBrains Mono, monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(name.slice(0, 2).toUpperCase(), x + size / 2, y + size / 2 + 0.5);
+    return;
+  }
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / 24, size / 24);
+  ctx.fillStyle = "#38bdf8";
+  ctx.fill(new Path2D(icon.path));
+  ctx.restore();
+}
+
+function measureTechChip(ctx: CanvasRenderingContext2D, chip: TechChip): number {
+  ctx.font = "500 14px JetBrains Mono, monospace";
+  const labelWidth = ctx.measureText(chip.name).width;
+  const percentWidth =
+    typeof chip.percentage === "number"
+      ? ctx.measureText(`${chip.percentage}%`).width + 18
+      : 0;
+
+  return Math.ceil(Math.max(104, 38 + labelWidth + percentWidth));
+}
+
+function drawTechChip(
+  ctx: CanvasRenderingContext2D,
+  chip: TechChip,
+  x: number,
+  y: number,
+  width: number
+): void {
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.font = "700 14px JetBrains Mono, monospace";
+  ctx.fillStyle = "#67e8f9";
+  ctx.fillText("•", x, y + TECH_CHIP_HEIGHT / 2 + 0.5);
+
+  drawTechIcon(ctx, getTechIcon(chip.name), chip.name, x + 17, y + 5);
+
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.font = "500 14px JetBrains Mono, monospace";
+  ctx.fillStyle = "#e2e8f0";
+  ctx.fillText(chip.name, x + 42, y + TECH_CHIP_HEIGHT / 2 + 0.5);
+
+  if (typeof chip.percentage === "number") {
+    ctx.font = "500 11px JetBrains Mono, monospace";
+    ctx.fillStyle = "#94a3b8";
+    ctx.textAlign = "right";
+    ctx.fillText(`${chip.percentage}%`, x + width - 12, y + TECH_CHIP_HEIGHT / 2 + 0.5);
+  }
+}
+
+function createTechStackCanvas(chips: TechChip[]): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  const measureCtx = canvas.getContext("2d");
+  if (measureCtx === null) {
+    throw new Error("No se pudo crear el canvas del stack.");
+  }
+
+  const rows: Array<Array<{ chip: TechChip; width: number }>> = [];
+  let currentRow: Array<{ chip: TechChip; width: number }> = [];
+  let currentWidth = 0;
+  const contentWidth = TECH_IMAGE_WIDTH - TECH_IMAGE_PADDING * 2;
+
+  for (const chip of chips) {
+    const width = measureTechChip(measureCtx, chip);
+    const nextWidth = currentRow.length === 0 ? width : currentWidth + TECH_CHIP_GAP + width;
+
+    if (nextWidth > contentWidth && currentRow.length > 0) {
+      rows.push(currentRow);
+      currentRow = [];
+      currentWidth = 0;
+    }
+
+    currentRow.push({ chip, width });
+    currentWidth = currentRow.length === 1 ? width : currentWidth + TECH_CHIP_GAP + width;
+  }
+
+  if (currentRow.length > 0) {
+    rows.push(currentRow);
+  }
+
+  const height =
+    TECH_IMAGE_PADDING * 2 +
+    rows.length * TECH_CHIP_HEIGHT +
+    Math.max(0, rows.length - 1) * TECH_CHIP_GAP;
+
+  canvas.width = TECH_IMAGE_WIDTH;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  if (ctx === null) {
+    throw new Error("No se pudo preparar el canvas del stack.");
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let y = TECH_IMAGE_PADDING;
+  for (const row of rows) {
+    let x = TECH_IMAGE_PADDING;
+    for (const item of row) {
+      drawTechChip(ctx, item.chip, x, y, item.width);
+      x += item.width + TECH_CHIP_GAP;
+    }
+    y += TECH_CHIP_HEIGHT + TECH_CHIP_GAP;
+  }
+
+  return canvas;
+}
+
+async function canvasToPngBytes(canvas: HTMLCanvasElement): Promise<Uint8Array> {
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((value) => {
+      if (value === null) {
+        reject(new Error("No se pudo exportar el canvas."));
+        return;
+      }
+      resolve(value);
+    }, "image/png");
+  });
+
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+async function buildTechStackSequence(chips: TechChip[], caption: string): Promise<string> {
+  const canvas = createTechStackCanvas(chips);
+  const bytes = await canvasToPngBytes(canvas);
+  return buildIipSequenceFromBytes(bytes, caption, { width: "100%" });
+}
+
 function openExternalLink(url: string): void {
   const allowed = /^https?:\/\//i.test(url);
   if (!allowed) {
@@ -189,10 +362,89 @@ async function buildIipSequence(src: string, caption: string): Promise<string> {
   }
 
   const bytes = new Uint8Array(await response.arrayBuffer());
-  const encodedImage = bytesToBase64(bytes);
-  const encodedName = utf8ToBase64(caption);
+  return buildIipSequenceFromBytes(bytes, caption, { width: "100%", height: "100%" });
+}
 
-  return `\u001b]1337;File=name=${encodedName};size=${bytes.length};inline=1;width=100%;height=100%;preserveAspectRatio=1:${encodedImage}\x07`;
+function renderOutputLine(terminal: Terminal, line: OutputLine): void {
+  const color = line.color
+    ? (ANSI[line.color as keyof typeof ANSI] ?? "")
+    : "";
+  const bold = line.bold ? ANSI.bold : "";
+  terminal.writeln(`${bold}${color}${line.text}${ANSI.reset}`);
+}
+
+async function renderTechStackImage(
+  terminal: Terminal,
+  chips: TechChip[],
+  caption: string
+): Promise<void> {
+  const sequence = await buildTechStackSequence(chips, caption);
+  terminal.write(sequence);
+}
+
+function renderTechStackFallback(terminal: Terminal, chips: TechChip[]): void {
+  for (const chip of chips) {
+    const percentage = typeof chip.percentage === "number" ? ` ${chip.percentage}%` : "";
+    terminal.writeln(`  ${ANSI.cyan}${chip.name}${ANSI.reset}${ANSI.dim}${percentage}${ANSI.reset}`);
+  }
+}
+
+async function renderProjectDetails(terminal: Terminal, project: Project): Promise<void> {
+  renderOutputLine(terminal, { text: project.title, bold: true, color: "cyan" });
+  renderOutputLine(terminal, { text: project.description, color: "dim" });
+  terminal.writeln("");
+  renderOutputLine(terminal, { text: "Stack", bold: true, color: "yellow" });
+
+  try {
+    await renderTechStackImage(
+      terminal,
+      project.stack.map((name) => ({ name })),
+      `${project.title} stack`
+    );
+  } catch {
+    renderTechStackFallback(
+      terminal,
+      project.stack.map((name) => ({ name }))
+    );
+  }
+
+  if (project.repos.length > 0) {
+    terminal.writeln("");
+    project.repos.forEach((repo, index) => {
+      renderOutputLine(terminal, {
+        text: `${index === 0 ? "Repo" : `Repo ${index + 1}`}: ${repo}`,
+        color: "blue",
+      });
+    });
+  }
+
+  if (project.deploy) {
+    terminal.writeln("");
+    renderOutputLine(terminal, { text: `Deploy: ${project.deploy}`, color: "magenta" });
+  }
+}
+
+async function renderGlobalStackDetails(terminal: Terminal): Promise<void> {
+  const grouped = globalStack.reduce<Record<string, StackItem[]>>((acc, item) => {
+    const current = acc[item.category] ?? [];
+    current.push(item);
+    acc[item.category] = current;
+    return acc;
+  }, {});
+
+  for (const [category, items] of Object.entries(grouped)) {
+    renderOutputLine(terminal, { text: category, bold: true, color: "yellow" });
+    const chips = items.map((item) => ({
+      name: item.name,
+      percentage: item.percentage,
+    }));
+
+    try {
+      await renderTechStackImage(terminal, chips, `${category} stack`);
+    } catch {
+      renderTechStackFallback(terminal, chips);
+    }
+  }
 }
 
 export function bootTerminal({ host, registry, onProjectChange }: BootOptions): TerminalShell {
@@ -300,7 +552,7 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
 
   async function showScreenshot(src: string, caption: string): Promise<void> {
     if (screenshotOpen && screenshotSnapshot !== null && src === activeScreenshotSrc) {
-      closeScreenshot();
+      void closeScreenshot();
       return;
     }
 
@@ -322,7 +574,9 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     } catch {
       terminal.writeln(`${ANSI.red}No se pudo abrir la captura.${ANSI.reset}`);
       terminal.writeln(`${ANSI.dim}Prueba otra imagen o recarga la página.${ANSI.reset}`);
-      if (screenshotSnapshot !== null) {
+      if (currentProject !== null) {
+        await redrawProjectView(currentProject);
+      } else if (screenshotSnapshot !== null) {
         restoreSnapshot(terminal, screenshotSnapshot, getCwd());
       }
       resetScreenshotViewer();
@@ -330,7 +584,15 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     }
   }
 
-  function closeScreenshot(): void {
+  async function redrawProjectView(project: Project): Promise<void> {
+    terminal.write("\u001b[2J\u001b[3J\u001b[H");
+    await renderProjectDetails(terminal, project);
+    terminal.writeln("");
+    printPrompt();
+    syncViewport(terminal);
+  }
+
+  async function closeScreenshot(): Promise<void> {
     if (!screenshotOpen || screenshotSnapshot === null) {
       return;
     }
@@ -338,6 +600,13 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     const snapshot = screenshotSnapshot;
     resetScreenshotViewer();
     activeScreenshotSrc = null;
+
+    if (currentProject !== null) {
+      await redrawProjectView(currentProject);
+      onProjectChange?.(currentProject);
+      return;
+    }
+
     restoreSnapshot(terminal, snapshot, getCwd());
     onProjectChange?.(currentProject);
     syncViewport(terminal);
@@ -349,7 +618,7 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     if (screenshotOpen) {
       if (code === 27) {
         domEvent.preventDefault();
-        closeScreenshot();
+        void closeScreenshot();
       }
       return;
     }
@@ -406,7 +675,12 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
                   resetScreenshotViewer();
                   onProjectChange?.(project);
                   terminal.write("\u001b[2J\u001b[3J\u001b[H");
-                  renderLines(terminal, lines);
+                  void renderProjectDetails(terminal, project).then(() => {
+                    terminal.writeln("");
+                    printPrompt();
+                    syncViewport(terminal);
+                  });
+                  return;
                 } else {
                   renderLines(terminal, lines);
                   currentProject = null;
@@ -417,6 +691,13 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
             }
           } else if (cmd === "ls") {
             renderLines(terminal, getLsLines(currentProject));
+          } else if (cmd === "stack") {
+            void renderGlobalStackDetails(terminal).then(() => {
+              terminal.writeln("");
+              printPrompt();
+              syncViewport(terminal);
+            });
+            return;
           } else {
             const lines = registry[cmd].run(args);
             renderLines(terminal, lines);
@@ -552,7 +833,9 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
 
   const terminalApi = terminal as TerminalShell;
   terminalApi.showScreenshot = showScreenshot;
-  terminalApi.closeScreenshot = closeScreenshot;
+  terminalApi.closeScreenshot = () => {
+    void closeScreenshot();
+  };
 
   return terminalApi;
 }
