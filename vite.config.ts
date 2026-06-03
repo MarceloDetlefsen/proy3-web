@@ -36,9 +36,10 @@ function wallpapersPlugin() {
       if (id === VIRTUAL_WALLPAPERS_ID) return RESOLVED_VIRTUAL_WALLPAPERS_ID
       return null
     },
-    load(id: string) {
+    load(id: string, options?: { ssr?: boolean }) {
       if (id !== RESOLVED_VIRTUAL_WALLPAPERS_ID) return null
-      const wallpapers = collectWallpapers(wallpapersDir, "/wallpapers")
+      // Las rutas son relativas — assetUrl() en wallpapers.ts añade el base
+      const wallpapers = collectWallpapers(wallpapersDir, "wallpapers")
       return `export const wallpapers = ${JSON.stringify(wallpapers)};`
     },
   }
