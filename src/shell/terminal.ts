@@ -11,6 +11,8 @@ import { getTechIcon } from "@/data/tech-icons";
 import { stack as globalStack } from "@/data/stack";
 import type { StackItem } from "@/data/stack";
 import type { SimpleIcon } from "simple-icons";
+import { mountGui } from "@/gui/index";
+import "@/gui/gui.css";
 
 export type BootOptions = {
   host: HTMLElement;
@@ -856,6 +858,17 @@ export function bootTerminal({
             onProjectChange?.(null);
             onEventsChange?.(true);
             renderLines(terminal, lines);
+          } else {
+            const lines = registry[cmd].run(args);
+            currentView = "other";
+            renderLines(terminal, lines);
+          }
+          } else if (cmd === "open") {
+          if (args.includes("--gui")) {
+            currentView = "other";
+            onProjectChange?.(null);
+            onEventsChange?.(false);
+            mountGui(host.ownerDocument.body);
           } else {
             const lines = registry[cmd].run(args);
             currentView = "other";
