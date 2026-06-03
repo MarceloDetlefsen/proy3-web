@@ -564,7 +564,7 @@ export function bootTerminal({
     fontFamily:
       '"JetBrains Mono", "SFMono-Regular", "SF Mono", Consolas, monospace',
     fontSize: 14,
-    lineHeight: 1.45,
+    lineHeight: 1.2,
     letterSpacing: 0.3,
     theme: {
       background: "rgba(2, 6, 23, 0)",
