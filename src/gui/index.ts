@@ -3,6 +3,7 @@ import type { Project } from "@/data/projects";
 import { stack } from "@/data/stack";
 import { events } from "@/data/events";
 import { getTechIconSvg } from "@/data/tech-icons";
+import { assetUrl } from "@/assets";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -80,7 +81,7 @@ function renderProjects(onOpenProject: (project: Project) => void): HTMLElement 
     if (project.screenshots.length > 0) {
       const thumb = el("div", "gui-card__thumb");
       const img = document.createElement("img");
-      img.src = `/${project.screenshots[0].replace(/^public\//, "")}`;
+      img.src = assetUrl(project.screenshots[0]);
       img.alt = `${project.name} screenshot`;
       img.loading = "lazy";
       img.draggable = false;
@@ -204,7 +205,7 @@ function renderEvents(): HTMLElement {
     if (event.image !== undefined) {
       const imgWrap = el("div", "gui-event-card__img-wrap");
       const img = document.createElement("img");
-      img.src = `/${event.image.replace(/^public\//, "")}`;
+      img.src = assetUrl(event.image);
       img.alt = event.title;
       img.loading = "lazy";
       img.draggable = false;
@@ -233,7 +234,7 @@ function renderContact(): HTMLElement {
   // Profile photo
   const photoWrap = el("div", "gui-contact-photo-wrap");
   const photo = document.createElement("img");
-  photo.src = "/personal/me.jpg";
+  photo.src = assetUrl("personal/me.jpg");
   photo.alt = "Marcelo Detlefsen";
   photo.className = "gui-contact-photo";
   photo.loading = "lazy";

@@ -13,6 +13,7 @@ import type { StackItem } from "@/data/stack";
 import type { SimpleIcon } from "simple-icons";
 import { mountGui } from "@/gui/index";
 import "@/gui/gui.css";
+import { assetUrl } from "@/assets";
 
 export type BootOptions = {
   host: HTMLElement;
@@ -45,7 +46,7 @@ const TECH_IMAGE_WIDTH = 980;
 const TECH_CHIP_HEIGHT = 28;
 const TECH_CHIP_GAP = 8;
 const TECH_IMAGE_PADDING = 8;
-const PROFILE_IMAGE_SRC = "/personal/me.jpg";
+const PROFILE_IMAGE_SRC = assetUrl("personal/me.jpg");
 
 type TechChip = {
   name: string;

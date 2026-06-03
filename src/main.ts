@@ -12,6 +12,7 @@ import { cmdEvents } from "@/commands/events";
 import { cmdContact } from "@/commands/contact";
 import { cmdGui } from "@/commands/gui";
 import { cmdClear } from "@/commands/clear";
+import { assetUrl } from "@/assets";
 import type { Project } from "@/data/projects";
 import { events as eventCards } from "@/data/events";
 import { pickRandomWallpaper } from "@/wallpapers";
@@ -96,7 +97,8 @@ app.innerHTML = `
 const appShell = app.querySelector<HTMLElement>(".app-shell");
 if (appShell !== null) {
   const wallpaper = pickRandomWallpaper();
-  appShell.style.setProperty("--wallpaper-image", wallpaper === "" ? "none" : `url("${wallpaper}")`);
+  const wallpaperImage = wallpaper === "" ? "none" : `url("${assetUrl(wallpaper)}")`;
+  appShell.style.setProperty("--wallpaper-image", wallpaperImage);
 }
 
 // Reloj + fecha
@@ -189,7 +191,7 @@ function renderGallery(project: Project | null): void {
 
   renderImageGallery(
     project.screenshots.map((screenshot, index) => ({
-      src: `/${screenshot.replace(/^public\//, "")}`,
+      src: assetUrl(screenshot),
       alt: `${project.title} screenshot ${index + 1}`,
       ariaLabel: `Ver captura ${index + 1} de ${project.title}`,
       restoresProjectView: true,
@@ -258,7 +260,7 @@ function renderEvents(active: boolean): void {
     eventCards.map((eventCard) => ({
       title: eventCard.title,
       description: eventCard.description,
-      src: eventCard.image === undefined ? undefined : `/${eventCard.image.replace(/^public\//, "")}`,
+      src: eventCard.image === undefined ? undefined : assetUrl(eventCard.image),
     })),
   );
 }
