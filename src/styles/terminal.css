@@ -188,7 +188,6 @@
   border-radius: 0.85rem;
   overflow: hidden;
   background: rgba(2, 6, 23, 0.45);
-  isolation: isolate;
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
 
