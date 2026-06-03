@@ -17,5 +17,11 @@ export function cmdWhoami(_args: string[]): OutputLine[] {
       text: "Me encuentro en Ciudad de Guatemala y disponible para trabajar en proyectos full stack, practicas o colaboraciones tecnicas.",
       color: "green",
     },
+    { text: "", color: "dim" },
+    { text: "GitHub: https://github.com/MarceloDetlefsen", color: "blue" },
+    {
+      text: "LinkedIn: https://www.linkedin.com/in/marcelo-detlefsen-2b170337b/",
+      color: "blue",
+    },
   ]
 }

@@ -10,6 +10,7 @@ import type { Project } from "@/data/projects";
 import { getTechIcon } from "@/data/tech-icons";
 import { stack as globalStack } from "@/data/stack";
 import type { StackItem } from "@/data/stack";
+import type { IDecoration } from "@xterm/xterm";
 import type { SimpleIcon } from "simple-icons";
 
 export type BootOptions = {
@@ -19,7 +20,7 @@ export type BootOptions = {
 };
 
 export type TerminalShell = Terminal & {
-  showScreenshot: (src: string, caption: string) => Promise<void>;
+  showScreenshot: (src: string, caption: string, restoresProjectView?: boolean) => Promise<void>;
   closeScreenshot: () => void;
 };
 
@@ -42,6 +43,10 @@ const TECH_IMAGE_WIDTH = 980;
 const TECH_CHIP_HEIGHT = 28;
 const TECH_CHIP_GAP = 8;
 const TECH_IMAGE_PADDING = 8;
+const PROFILE_IMAGE_SRC = "/personal/me.jpg";
+const PROFILE_IMAGE_WIDTH_PX = 180;
+const PROFILE_IMAGE_RESERVED_ROWS = 12;
+const PROFILE_IMAGE_CELL_WIDTH = 1;
 
 type TechChip = {
   name: string;
@@ -109,16 +114,24 @@ function captureSnapshot(terminal: Terminal, project: Project | null): TerminalS
   return { lines, project };
 }
 
-function restoreSnapshot(terminal: Terminal, snapshot: TerminalSnapshot, cwd: string): void {
+function restoreSnapshot(
+  terminal: Terminal,
+  snapshot: TerminalSnapshot,
+  cwd: string,
+  showResumeMessage = true
+): void {
   terminal.write("\u001b[2J\u001b[3J\u001b[H");
 
   if (snapshot.lines.length > 0) {
     terminal.write(snapshot.lines.join("\r\n"));
   }
 
-  terminal.writeln("");
-  terminal.writeln(`${ANSI.dim}historial retomado${ANSI.reset}`);
-  terminal.writeln("");
+  if (showResumeMessage) {
+    terminal.writeln("");
+    terminal.writeln(`${ANSI.dim}historial retomado${ANSI.reset}`);
+    terminal.writeln("");
+  }
+
   terminal.write(buildPrompt(cwd));
 }
 
@@ -355,14 +368,18 @@ function registerClickableLinks(terminal: Terminal): () => void {
   return () => disposable.dispose();
 }
 
-async function buildIipSequence(src: string, caption: string): Promise<string> {
+async function buildIipSequence(
+  src: string,
+  caption: string,
+  options: { width?: string; height?: string } = { width: "100%", height: "100%" }
+): Promise<string> {
   const response = await fetch(src);
   if (!response.ok) {
     throw new Error(`No se pudo cargar ${src}`);
   }
 
   const bytes = new Uint8Array(await response.arrayBuffer());
-  return buildIipSequenceFromBytes(bytes, caption, { width: "100%", height: "100%" });
+  return buildIipSequenceFromBytes(bytes, caption, options);
 }
 
 function renderOutputLine(terminal: Terminal, line: OutputLine): void {
@@ -387,6 +404,96 @@ function renderTechStackFallback(terminal: Terminal, chips: TechChip[]): void {
     const percentage = typeof chip.percentage === "number" ? ` ${chip.percentage}%` : "";
     terminal.writeln(`  ${ANSI.cyan}${chip.name}${ANSI.reset}${ANSI.dim}${percentage}${ANSI.reset}`);
   }
+}
+
+type CellMetrics = {
+  width: number;
+};
+
+function getCellMetrics(terminal: Terminal): CellMetrics | null {
+  const rowsElement = terminal.element?.querySelector<HTMLElement>(".xterm-rows");
+  if (rowsElement === undefined || rowsElement === null || terminal.cols <= 0 || terminal.rows <= 0) {
+    return null;
+  }
+
+  const rowsRect = rowsElement.getBoundingClientRect();
+  if (rowsRect.width <= 0 || rowsRect.height <= 0) {
+    return null;
+  }
+
+  return {
+    width: rowsRect.width / terminal.cols,
+  };
+}
+
+function createProfilePhotoDecoration(terminal: Terminal): IDecoration | null {
+  const marker = terminal.registerMarker(0);
+  if (marker === undefined) {
+    return null;
+  }
+
+  const metrics = getCellMetrics(terminal);
+  const widthCells =
+    metrics === null
+      ? PROFILE_IMAGE_CELL_WIDTH
+      : Math.max(1, Math.ceil(PROFILE_IMAGE_WIDTH_PX / metrics.width));
+
+  const decoration = terminal.registerDecoration({
+    marker,
+    anchor: "left",
+    x: 0,
+    width: widthCells,
+    height: PROFILE_IMAGE_RESERVED_ROWS,
+  });
+
+  if (decoration === undefined) {
+    return null;
+  }
+
+  decoration.onRender((element) => {
+    element.classList.add("profile-photo-decoration");
+    element.replaceChildren();
+
+    const image = document.createElement("img");
+    image.className = "profile-photo-decoration-image";
+    image.src = PROFILE_IMAGE_SRC;
+    image.alt = "Foto de Marcelo Detlefsen";
+    image.draggable = false;
+    image.tabIndex = 0;
+    image.setAttribute("role", "button");
+    image.setAttribute("aria-label", "Ver foto de Marcelo Detlefsen");
+
+    const openProfilePhoto = () => {
+      const terminalShell = terminal as TerminalShell;
+      void terminalShell.showScreenshot(PROFILE_IMAGE_SRC, image.alt, false);
+      terminal.focus();
+    };
+
+    image.addEventListener("click", openProfilePhoto);
+    image.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openProfilePhoto();
+      }
+    });
+
+    element.appendChild(image);
+  });
+
+  return decoration;
+}
+
+async function renderWhoamiDetails(
+  terminal: Terminal,
+  lines: OutputLine[]
+): Promise<void> {
+  createProfilePhotoDecoration(terminal);
+
+  for (let i = 0; i < PROFILE_IMAGE_RESERVED_ROWS; i++) {
+    terminal.writeln("");
+  }
+
+  renderLines(terminal, lines);
 }
 
 async function renderProjectDetails(terminal: Terminal, project: Project): Promise<void> {
@@ -447,17 +554,23 @@ async function renderGlobalStackDetails(terminal: Terminal): Promise<void> {
   }
 }
 
-export function bootTerminal({ host, registry, onProjectChange }: BootOptions): TerminalShell {
+export function bootTerminal({
+  host,
+  registry,
+  onProjectChange,
+}: BootOptions): TerminalShell {
   let currentProject: Project | null = null;
   const sessionStack: TerminalSnapshot[] = [];
   let screenshotSnapshot: TerminalSnapshot | null = null;
   let screenshotOpen = false;
   let activeScreenshotSrc: string | null = null;
+  let screenshotRestoresProjectView = true;
   const terminal = new Terminal({
     // Sin cols/rows fijos — FitAddon los calcula según el contenedor real.
     cursorBlink: true,
     convertEol: true,
     scrollback: 500,
+    allowProposedApi: true,
     fontFamily:
       '"JetBrains Mono", "SFMono-Regular", "SF Mono", Consolas, monospace',
     fontSize: 14,
@@ -548,9 +661,14 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     screenshotSnapshot = null;
     screenshotOpen = false;
     activeScreenshotSrc = null;
+    screenshotRestoresProjectView = true;
   }
 
-  async function showScreenshot(src: string, caption: string): Promise<void> {
+  async function showScreenshot(
+    src: string,
+    caption: string,
+    restoresProjectView = true
+  ): Promise<void> {
     if (screenshotOpen && screenshotSnapshot !== null && src === activeScreenshotSrc) {
       void closeScreenshot();
       return;
@@ -562,9 +680,10 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     }
 
     activeScreenshotSrc = src;
+    screenshotRestoresProjectView = restoresProjectView;
 
     terminal.write("\u001b[2J\u001b[3J\u001b[H");
-    terminal.writeln(`${ANSI.dim}Pulsa Esc para salir de la captura.${ANSI.reset}`);
+    terminal.focus();
 
     try {
       const sequence = await buildIipSequence(src, caption);
@@ -574,10 +693,10 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     } catch {
       terminal.writeln(`${ANSI.red}No se pudo abrir la captura.${ANSI.reset}`);
       terminal.writeln(`${ANSI.dim}Prueba otra imagen o recarga la página.${ANSI.reset}`);
-      if (currentProject !== null) {
+      if (currentProject !== null && screenshotRestoresProjectView) {
         await redrawProjectView(currentProject);
       } else if (screenshotSnapshot !== null) {
-        restoreSnapshot(terminal, screenshotSnapshot, getCwd());
+        restoreSnapshot(terminal, screenshotSnapshot, getCwd(), screenshotRestoresProjectView);
       }
       resetScreenshotViewer();
       syncViewport(terminal);
@@ -598,16 +717,17 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     }
 
     const snapshot = screenshotSnapshot;
+    const restoresProjectView = screenshotRestoresProjectView;
     resetScreenshotViewer();
     activeScreenshotSrc = null;
 
-    if (currentProject !== null) {
+    if (currentProject !== null && restoresProjectView) {
       await redrawProjectView(currentProject);
       onProjectChange?.(currentProject);
       return;
     }
 
-    restoreSnapshot(terminal, snapshot, getCwd());
+    restoreSnapshot(terminal, snapshot, getCwd(), restoresProjectView);
     onProjectChange?.(currentProject);
     syncViewport(terminal);
   }
@@ -693,6 +813,14 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
             renderLines(terminal, getLsLines(currentProject));
           } else if (cmd === "stack") {
             void renderGlobalStackDetails(terminal).then(() => {
+              terminal.writeln("");
+              printPrompt();
+              syncViewport(terminal);
+            });
+            return;
+          } else if (cmd === "whoami") {
+            const lines = registry[cmd].run(args);
+            void renderWhoamiDetails(terminal, lines).then(() => {
               terminal.writeln("");
               printPrompt();
               syncViewport(terminal);

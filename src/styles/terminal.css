@@ -301,6 +301,29 @@
   outline-offset: 2px;
 }
 
+.profile-photo-decoration {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  pointer-events: auto;
+  overflow: visible;
+}
+
+.profile-photo-decoration-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: 0;
+  cursor: zoom-in;
+  user-select: none;
+}
+
+.profile-photo-decoration-image:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.85);
+  outline-offset: 2px;
+}
+
 /*
  * #terminal es el host que se le pasa a terminal.open(host).
  * FitAddon mide offsetWidth/offsetHeight de este elemento para

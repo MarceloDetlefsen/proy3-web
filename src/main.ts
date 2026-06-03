@@ -110,18 +110,30 @@ if (clock !== null) {
 
 const terminalHost = document.querySelector<HTMLElement>("#terminal");
 if (terminalHost === null) throw new Error("No se encontró el contenedor de la terminal.");
+const terminalElement = terminalHost;
 
 const galleryRoot = document.querySelector<HTMLElement>("#project-gallery");
 const galleryGrid = document.querySelector<HTMLElement>("#project-gallery-grid");
 
-const terminal = bootTerminal({ host: terminalHost, registry, onProjectChange: renderGallery });
+type GalleryImage = {
+  src: string;
+  alt: string;
+  ariaLabel: string;
+  restoresProjectView: boolean;
+};
 
-function renderGallery(project: Project | null): void {
+const terminal = bootTerminal({
+  host: terminalElement,
+  registry,
+  onProjectChange: renderGallery,
+});
+
+function renderImageGallery(images: GalleryImage[]): void {
   if (galleryRoot === null || galleryGrid === null) {
     return;
   }
 
-  if (project === null) {
+  if (images.length === 0) {
     galleryRoot.hidden = true;
     galleryGrid.replaceChildren();
     return;
@@ -129,27 +141,42 @@ function renderGallery(project: Project | null): void {
 
   galleryRoot.hidden = false;
   galleryGrid.replaceChildren(
-    ...project.screenshots.map((screenshot, index) => {
-      const src = `/${screenshot.replace(/^public\//, "")}`;
+    ...images.map((image) => {
       const img = document.createElement("img");
-      img.src = src;
-      img.alt = `${project.title} screenshot ${index + 1}`;
+      img.src = image.src;
+      img.alt = image.alt;
       img.loading = "lazy";
       img.draggable = false;
       img.setAttribute("role", "button");
       img.tabIndex = 0;
-      img.setAttribute("aria-label", `Ver captura ${index + 1} de ${project.title}`);
+      img.setAttribute("aria-label", image.ariaLabel);
       img.addEventListener("click", () => {
-        void terminal.showScreenshot(src, img.alt);
+        void terminal.showScreenshot(image.src, image.alt, image.restoresProjectView);
       });
       img.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          void terminal.showScreenshot(src, img.alt);
+          void terminal.showScreenshot(image.src, image.alt, image.restoresProjectView);
         }
       });
       return img;
     }),
+  );
+}
+
+function renderGallery(project: Project | null): void {
+  if (project === null) {
+    renderImageGallery([]);
+    return;
+  }
+
+  renderImageGallery(
+    project.screenshots.map((screenshot, index) => ({
+      src: `/${screenshot.replace(/^public\//, "")}`,
+      alt: `${project.title} screenshot ${index + 1}`,
+      ariaLabel: `Ver captura ${index + 1} de ${project.title}`,
+      restoresProjectView: true,
+    })),
   );
 }
 
