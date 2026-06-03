@@ -36,7 +36,7 @@ function wallpapersPlugin() {
       if (id === VIRTUAL_WALLPAPERS_ID) return RESOLVED_VIRTUAL_WALLPAPERS_ID
       return null
     },
-    load(id: string, options?: { ssr?: boolean }) {
+    load(id: string, _options?: { ssr?: boolean }) {
       if (id !== RESOLVED_VIRTUAL_WALLPAPERS_ID) return null
       // Las rutas son relativas — assetUrl() en wallpapers.ts añade el base
       const wallpapers = collectWallpapers(wallpapersDir, "wallpapers")
