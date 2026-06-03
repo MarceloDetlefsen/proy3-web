@@ -139,6 +139,49 @@ function utf8ToBase64(value: string): string {
   return bytesToBase64(new TextEncoder().encode(value));
 }
 
+function openExternalLink(url: string): void {
+  const allowed = /^https?:\/\//i.test(url);
+  if (!allowed) {
+    return;
+  }
+
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function registerClickableLinks(terminal: Terminal): () => void {
+  const urlPattern = /https?:\/\/[^\s)]+/g;
+
+  const disposable = terminal.registerLinkProvider({
+    provideLinks(y, callback) {
+      const line = terminal.buffer.active.getLine(y - 1);
+      if (line === undefined) {
+        callback(undefined);
+        return;
+      }
+
+      const text = line.translateToString(true);
+      const links = Array.from(text.matchAll(urlPattern), (match) => {
+        const url = match[0];
+        const startX = (match.index ?? 0) + 1;
+        const endX = startX + url.length;
+
+        return {
+          range: {
+            start: { x: startX, y },
+            end: { x: endX, y },
+          },
+          text: url,
+          activate: () => openExternalLink(url),
+        };
+      });
+
+      callback(links.length > 0 ? links : undefined);
+    },
+  });
+
+  return () => disposable.dispose();
+}
+
 async function buildIipSequence(src: string, caption: string): Promise<string> {
   const response = await fetch(src);
   if (!response.ok) {
@@ -200,6 +243,7 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     showPlaceholder: false,
     sixelSupport: false,
   }));
+  const disposeLinkProvider = registerClickableLinks(terminal);
 
   terminal.open(host);
 
@@ -223,6 +267,7 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
   const disposeTerminal = terminal.dispose.bind(terminal);
   terminal.dispose = () => {
     resizeObserver.disconnect();
+    disposeLinkProvider();
     disposeTerminal();
   };
 
