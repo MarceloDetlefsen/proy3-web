@@ -2,8 +2,17 @@ import type { OutputLine } from "./index"
 
 export function cmdContact(_args: string[]): OutputLine[] {
   return [
-    { text: "GitHub: github.com/marcelo-detlefsen" },
-    { text: "LinkedIn: linkedin.com/in/marcelo-detlefsen" },
-    { text: "Email: marcelo@example.com" },
+    { text: "Contacto", bold: true, color: "cyan" },
+    { text: "Disponible en Guatemala para trabajo y colaboraciones.", color: "green" },
+    { text: "", color: "dim" },
+    { text: "Email", bold: true, color: "yellow" },
+    { text: "  marcelodetlefsen@gmail.com", color: "white" },
+    { text: "", color: "dim" },
+    { text: "Links", bold: true, color: "yellow" },
+    { text: "  GitHub:   https://github.com/MarceloDetlefsen", color: "blue" },
+    {
+      text: "  LinkedIn: https://www.linkedin.com/in/marcelo-detlefsen-2b170337b/",
+      color: "blue",
+    },
   ]
 }
