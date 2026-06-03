@@ -57,17 +57,17 @@
 | `clear` | Limpia la terminal |
 
 ### Fase 5 - Comando `cd` a cada uno de los proyectos a mostrar en el repositorio
-- [ ] Definir qué proyectos van a aparecer como destinos válidos de `cd`
-- [ ] Definir estructura de datos para proyectos (`@/data/projects.ts`)
-- [ ] Conectar `cd <proyecto>` con los datos reales del repositorio
-- [ ] Mostrar descripción breve del proyecto al entrar
-- [ ] Mostrar stack usado en cada proyecto
-- [ ] Mostrar capturas o screenshots del proyecto
-- [ ] Incluir enlace al repositorio o demo si existe
-- [ ] Manejar `cd ..` para volver al root sin perder el estado
-- [ ] Mostrar un mensaje de error claro cuando el proyecto no exista
-- [ ] Verificar que `ls` y `cd` usen la misma fuente de datos
-- [ ] Probar que la navegación entre root y proyectos sea consistente
+- [x] Definir qué proyectos van a aparecer como destinos válidos de `cd`
+- [x] Definir estructura de datos para proyectos (`@/data/projects.ts`)
+- [x] Conectar `cd <proyecto>` con los datos reales del repositorio
+- [x] Mostrar descripción breve del proyecto al entrar
+- [x] Mostrar stack usado en cada proyecto
+- [x] Mostrar capturas o screenshots del proyecto
+- [x] Incluir enlace al repositorio o demo si existe
+- [x] Manejar `cd ..` para volver al root sin perder el estado
+- [x] Mostrar un mensaje de error claro cuando el proyecto no exista
+- [x] Verificar que `ls` y `cd` usen la misma fuente de datos
+- [x] Probar que la navegación entre root y proyectos sea consistente
 
 ### Fase 6 — Comando `fastfetch`
 - [ ] Diseñar ASCII art (logo personal o distro ficticia)
