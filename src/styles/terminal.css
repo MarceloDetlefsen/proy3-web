@@ -314,9 +314,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
-  max-height: 38vh;
-  overflow: auto;
-  padding-right: 0.2rem;
+  overflow: visible;
 }
 
 .event-card {

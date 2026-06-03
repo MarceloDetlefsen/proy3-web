@@ -117,7 +117,8 @@ function restoreSnapshot(
   terminal: Terminal,
   snapshot: TerminalSnapshot,
   cwd: string,
-  showResumeMessage = true
+  showResumeMessage = true,
+  appendPrompt = true
 ): void {
   terminal.write("\u001b[2J\u001b[3J\u001b[H");
 
@@ -131,7 +132,9 @@ function restoreSnapshot(
     terminal.writeln("");
   }
 
-  terminal.write(buildPrompt(cwd));
+  if (appendPrompt) {
+    terminal.write(buildPrompt(cwd));
+  }
 }
 
 function redrawInput(terminal: Terminal, inputBuffer: string, cwd: string): void {
@@ -666,6 +669,8 @@ export function bootTerminal({
     terminal.focus();
 
     try {
+      terminal.writeln(`${ANSI.dim}Esc para volver${ANSI.reset}`);
+      terminal.writeln("");
       const sequence = await buildIipSequence(src, caption);
       terminal.write(sequence, () => {
         syncViewport(terminal);
@@ -676,7 +681,13 @@ export function bootTerminal({
       if (currentProject !== null && screenshotRestoresProjectView) {
         await redrawProjectView(currentProject);
       } else if (screenshotSnapshot !== null) {
-        restoreSnapshot(terminal, screenshotSnapshot, getCwd(), screenshotRestoresProjectView);
+        restoreSnapshot(
+          terminal,
+          screenshotSnapshot,
+          getCwd(),
+          screenshotRestoresProjectView,
+          false
+        );
       }
       resetScreenshotViewer();
       syncViewport(terminal);
@@ -711,6 +722,15 @@ export function bootTerminal({
       const lines = registry.whoami.run([]);
       await redrawWhoamiView(terminal, lines, getCwd());
       currentView = "whoami";
+      return;
+    }
+
+    if (currentView === "events" && !restoresProjectView) {
+      restoreSnapshot(terminal, snapshot, getCwd(), false, false);
+      onEventsChange?.(true);
+      onProjectChange?.(null);
+      currentView = "events";
+      syncViewport(terminal);
       return;
     }
 
