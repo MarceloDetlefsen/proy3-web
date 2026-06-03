@@ -237,7 +237,7 @@
 
 .gui-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.85rem;
 }
 
@@ -489,7 +489,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  max-width: 560px;
+  max-width: 760px;
   margin: 0 auto;
   padding-top: 0.5rem;
 }
@@ -597,6 +597,14 @@
   .gui-contact-row {
     grid-template-columns: 1.4rem 6rem 1fr;
     gap: 0.5rem;
+  }
+
+  .gui-contact-wrapper {
+    max-width: 100%;
+  }
+
+  .gui-contact-photo {
+    width: min(100%, 220px);
   }
 }
 
@@ -785,13 +793,14 @@
 .gui-contact-photo-wrap {
   display: flex;
   justify-content: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.15rem;
 }
 
 .gui-contact-photo {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
+  width: min(100%, 280px);
+  aspect-ratio: 4 / 5;
+  height: auto;
+  border-radius: 1rem;
   object-fit: cover;
   border: 2px solid rgba(125, 211, 252, 0.35);
   box-shadow:
