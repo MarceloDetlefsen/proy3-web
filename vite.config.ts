@@ -45,6 +45,7 @@ function wallpapersPlugin() {
 }
 
 export default defineConfig({
+  base: '/proy3-web/',
   plugins: [wallpapersPlugin()],
   resolve: {
     alias: {
