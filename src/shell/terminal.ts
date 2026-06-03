@@ -16,6 +16,7 @@ export type BootOptions = {
   host: HTMLElement;
   registry: CommandRegistry;
   onProjectChange?: (project: Project | null) => void;
+  onEventsChange?: (active: boolean) => void;
 };
 
 export type TerminalShell = Terminal & {
@@ -94,7 +95,7 @@ type TerminalSnapshot = {
   project: Project | null;
 };
 
-type ViewMode = "boot" | "whoami" | "project" | "other";
+type ViewMode = "boot" | "whoami" | "project" | "events" | "other";
 
 function captureSnapshot(terminal: Terminal, project: Project | null): TerminalSnapshot {
   const buffer = terminal.buffer.active;
@@ -533,6 +534,7 @@ export function bootTerminal({
   host,
   registry,
   onProjectChange,
+  onEventsChange,
 }: BootOptions): TerminalShell {
   let currentProject: Project | null = null;
   let currentView: ViewMode = "boot";
@@ -739,6 +741,7 @@ export function bootTerminal({
       if (raw.length > 0) {
         history.unshift(raw);
         const { cmd, args } = parseInput(raw);
+        onEventsChange?.(false);
 
         if (cmd === "clear") {
           terminal.write("\u001b[2J\u001b[3J\u001b[H");
@@ -794,11 +797,13 @@ export function bootTerminal({
                   renderLines(terminal, lines);
                   currentProject = null;
                   resetScreenshotViewer();
+                  currentView = "other";
                   onProjectChange?.(null);
                 }
               }
             }
           } else if (cmd === "ls") {
+            onEventsChange?.(false);
             renderLines(terminal, getLsLines(currentProject));
           } else if (cmd === "stack") {
             currentView = "other";
@@ -817,6 +822,12 @@ export function bootTerminal({
               syncViewport(terminal);
             });
             return;
+          } else if (cmd === "events") {
+            const lines = registry[cmd].run(args);
+            currentView = "events";
+            onProjectChange?.(null);
+            onEventsChange?.(true);
+            renderLines(terminal, lines);
           } else {
             const lines = registry[cmd].run(args);
             currentView = "other";

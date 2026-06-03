@@ -15,6 +15,7 @@ import { cmdCd } from "./cd"
 import { cmdClear } from "./clear"
 import { cmdContact } from "./contact"
 import { cmdFastfetch } from "./fastfetch"
+import { cmdEvents } from "./events"
 import { cmdGui } from "./gui"
 import { cmdHelp } from "./help"
 import { cmdHobbies } from "./hobbies"
@@ -30,6 +31,7 @@ export const registry: CommandRegistry = {
   stack: { description: "Stack técnico", run: cmdStack },
   hobbies: { description: "Hobbies personales", run: cmdHobbies },
   fastfetch: { description: "Info estilo sistema", run: cmdFastfetch },
+  events: { description: "Participaciones en eventos CS", run: cmdEvents },
   contact: { description: "Contacto", run: cmdContact },
   open: { description: "Activa modo GUI", run: cmdGui },
   clear: { description: "Limpia la terminal", run: cmdClear },

@@ -8,10 +8,12 @@ import { cmdCd } from "@/commands/cd";
 import { cmdStack } from "@/commands/stack";
 import { cmdHobbies } from "@/commands/hobbies";
 import { cmdFastfetch } from "@/commands/fastfetch";
+import { cmdEvents } from "@/commands/events";
 import { cmdContact } from "@/commands/contact";
 import { cmdGui } from "@/commands/gui";
 import { cmdClear } from "@/commands/clear";
 import type { Project } from "@/data/projects";
+import { events as eventCards } from "@/data/events";
 import { pickRandomWallpaper } from "@/wallpapers";
 
 const registry: CommandRegistry = {
@@ -22,6 +24,7 @@ const registry: CommandRegistry = {
   stack:     { description: "Stack técnico con porcentajes",     run: cmdStack },
   hobbies:   { description: "Mis hobbies",                       run: cmdHobbies },
   fastfetch: { description: "Info del sistema",                  run: cmdFastfetch },
+  events:    { description: "Eventos y participaciones CS",     run: cmdEvents },
   contact:   { description: "Contacto",                          run: cmdContact },
   open:      { description: "Modo GUI (open --gui)",             run: cmdGui },
   clear:     { description: "Limpia la terminal",                run: cmdClear },
@@ -80,6 +83,9 @@ app.innerHTML = `
           <section class="project-gallery" id="project-gallery" hidden aria-live="polite">
             <div class="project-gallery-grid" id="project-gallery-grid"></div>
           </section>
+          <section class="event-gallery" id="event-gallery" hidden aria-live="polite">
+            <div class="event-gallery-grid" id="event-gallery-grid"></div>
+          </section>
         </div>
       </div>
 
@@ -114,6 +120,8 @@ const terminalElement = terminalHost;
 
 const galleryRoot = document.querySelector<HTMLElement>("#project-gallery");
 const galleryGrid = document.querySelector<HTMLElement>("#project-gallery-grid");
+const eventGalleryRoot = document.querySelector<HTMLElement>("#event-gallery");
+const eventGalleryGrid = document.querySelector<HTMLElement>("#event-gallery-grid");
 
 type GalleryImage = {
   src: string;
@@ -122,10 +130,17 @@ type GalleryImage = {
   restoresProjectView: boolean;
 };
 
+type EventGalleryCard = {
+  title: string;
+  description: string;
+  src?: string;
+};
+
 const terminal = bootTerminal({
   host: terminalElement,
   registry,
   onProjectChange: renderGallery,
+  onEventsChange: renderEvents,
 });
 
 function renderImageGallery(images: GalleryImage[]): void {
@@ -165,6 +180,8 @@ function renderImageGallery(images: GalleryImage[]): void {
 }
 
 function renderGallery(project: Project | null): void {
+  renderEvents(false);
+
   if (project === null) {
     renderImageGallery([]);
     return;
@@ -176,6 +193,72 @@ function renderGallery(project: Project | null): void {
       alt: `${project.title} screenshot ${index + 1}`,
       ariaLabel: `Ver captura ${index + 1} de ${project.title}`,
       restoresProjectView: true,
+    })),
+  );
+}
+
+function renderEventGallery(cards: EventGalleryCard[]): void {
+  if (eventGalleryRoot === null || eventGalleryGrid === null) {
+    return;
+  }
+
+  if (cards.length === 0) {
+    eventGalleryRoot.hidden = true;
+    eventGalleryGrid.replaceChildren();
+    return;
+  }
+
+  eventGalleryRoot.hidden = false;
+  eventGalleryGrid.replaceChildren(
+    ...cards.map((card) => {
+      const article = document.createElement("article");
+      article.className = "event-card";
+
+      if (card.src !== undefined) {
+        const img = document.createElement("img");
+        img.src = card.src;
+        img.alt = card.title;
+        img.loading = "lazy";
+        img.draggable = false;
+        img.className = "event-card-image";
+        article.appendChild(img);
+      } else {
+        const placeholder = document.createElement("div");
+        placeholder.className = "event-card-image event-card-image--placeholder";
+        article.appendChild(placeholder);
+      }
+
+      const overlay = document.createElement("div");
+      overlay.className = "event-card-overlay";
+
+      const title = document.createElement("h3");
+      title.className = "event-card-title";
+      title.textContent = card.title;
+
+      const description = document.createElement("p");
+      description.className = "event-card-description";
+      description.textContent = card.description;
+
+      overlay.appendChild(title);
+      overlay.appendChild(description);
+      article.appendChild(overlay);
+      return article;
+    }),
+  );
+}
+
+function renderEvents(active: boolean): void {
+  if (!active) {
+    renderEventGallery([]);
+    return;
+  }
+
+  renderImageGallery([]);
+  renderEventGallery(
+    eventCards.map((eventCard) => ({
+      title: eventCard.title,
+      description: eventCard.description,
+      src: eventCard.image === undefined ? undefined : `/${eventCard.image.replace(/^public\//, "")}`,
     })),
   );
 }

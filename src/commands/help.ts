@@ -8,6 +8,7 @@ const commands = [
   ["stack", "Tecnologías y porcentajes"],
   ["hobbies", "Música, tenis, basket y videojuegos"],
   ["fastfetch", "Info estilo sistema"],
+  ["events", "Eventos y participaciones CS"],
   ["contact", "Formas de contacto"],
   ["open --gui", "Activa el modo visual"],
   ["clear", "Limpia la terminal"],
