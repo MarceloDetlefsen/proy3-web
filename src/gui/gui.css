@@ -254,6 +254,10 @@
   cursor: default;
 }
 
+.gui-card--interactive {
+  cursor: pointer;
+}
+
 .gui-card:hover {
   border-color: var(--gui-border-hover);
   background: var(--gui-surface-hover);
@@ -342,6 +346,207 @@
 
 .gui-card__link--dim:hover {
   color: var(--gui-text-muted);
+}
+
+/* ── Project modal ───────────────────────────────────────────────────────── */
+
+.gui-project-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.gui-project-modal[hidden] {
+  display: none;
+}
+
+.gui-project-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.gui-project-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(1120px, calc(100vw - 2.5rem));
+  max-height: min(88vh, 980px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.15rem 1.15rem 1rem;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  border-radius: 1rem;
+  background: rgba(6, 16, 31, 0.92);
+  box-shadow:
+    0 24px 80px rgba(2, 6, 23, 0.6),
+    0 0 0 1px rgba(125, 211, 252, 0.12);
+}
+
+.gui-project-modal__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(125, 211, 252, 0.2) transparent;
+}
+
+.gui-project-modal__content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.gui-project-modal__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gui-project-modal__content::-webkit-scrollbar-thumb {
+  background: rgba(125, 211, 252, 0.2);
+  border-radius: 2px;
+}
+
+.gui-project-modal__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.gui-project-modal__title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gui-accent-cyan);
+  margin: 0;
+}
+
+.gui-project-modal__subtitle {
+  font-size: 0.78rem;
+  color: var(--gui-text-dim);
+  margin: 0;
+}
+
+.gui-project-modal__description {
+  font-size: 0.74rem;
+  line-height: 1.65;
+  color: var(--gui-text-muted);
+  margin: 0;
+}
+
+.gui-project-modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.gui-project-modal__section-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gui-accent-yellow);
+  margin: 0;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--gui-border);
+}
+
+.gui-project-modal__shots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.gui-project-modal__shot {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 0.85rem;
+  border: 1px solid var(--gui-border);
+  background: rgba(2, 6, 23, 0.58);
+}
+
+.gui-project-modal__shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.gui-project-modal__stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.gui-project-modal__tech {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  background: rgba(56, 189, 248, 0.08);
+  color: var(--gui-text);
+  font-size: 0.66rem;
+  white-space: nowrap;
+}
+
+.gui-project-modal__tech-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  color: var(--gui-accent-cyan);
+  flex-shrink: 0;
+}
+
+.gui-project-modal__tech-icon--fallback {
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  border-radius: 0.3rem;
+  background: rgba(125, 211, 252, 0.08);
+  font-size: 0.55rem;
+  font-weight: 700;
+}
+
+.gui-project-modal__tech-icon svg {
+  display: block;
+}
+
+.gui-project-modal__tech-label {
+  color: var(--gui-text);
+}
+
+.gui-project-modal__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--gui-border);
+}
+
+.gui-project-modal__link {
+  font-size: 0.68rem;
+  color: var(--gui-accent-cyan);
+  text-decoration: none;
+  letter-spacing: 0.03em;
+}
+
+.gui-project-modal__link--dim {
+  color: var(--gui-text-dim);
+}
+
+.gui-project-modal__link:hover {
+  text-decoration: underline;
 }
 
 /* ── Stack section ───────────────────────────────────────────────────────── */
@@ -605,6 +810,20 @@
 
   .gui-contact-photo {
     width: min(100%, 220px);
+  }
+
+  .gui-project-modal {
+    padding: 0.75rem;
+  }
+
+  .gui-project-modal__panel {
+    width: calc(100vw - 1.5rem);
+    max-height: calc(100vh - 1.5rem);
+    padding: 1rem;
+  }
+
+  .gui-project-modal__shots {
+    grid-template-columns: 1fr;
   }
 }
 

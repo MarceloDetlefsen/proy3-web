@@ -1,4 +1,5 @@
 import { projects } from "@/data/projects";
+import type { Project } from "@/data/projects";
 import { stack } from "@/data/stack";
 import { events } from "@/data/events";
 import { getTechIconSvg } from "@/data/tech-icons";
@@ -40,11 +41,40 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
-function renderProjects(): HTMLElement {
+function buildTechChip(name: string): HTMLElement {
+  const chip = el("span", "gui-project-modal__tech");
+  const iconWrap = el("span", "gui-project-modal__tech-icon");
+  const svgStr = getTechIconSvg(name);
+
+  if (svgStr !== null) {
+    iconWrap.innerHTML = svgStr;
+    const svgEl = iconWrap.querySelector("svg");
+    if (svgEl !== null) {
+      svgEl.setAttribute("width", "14");
+      svgEl.setAttribute("height", "14");
+      svgEl.style.fill = "currentColor";
+      svgEl.style.display = "block";
+      svgEl.style.flexShrink = "0";
+    }
+  } else {
+    iconWrap.textContent = name.slice(0, 2).toUpperCase();
+    iconWrap.classList.add("gui-project-modal__tech-icon--fallback");
+  }
+
+  const label = el("span", "gui-project-modal__tech-label", name);
+  chip.appendChild(iconWrap);
+  chip.appendChild(label);
+  return chip;
+}
+
+function renderProjects(onOpenProject: (project: Project) => void): HTMLElement {
   const grid = el("div", "gui-grid");
 
   for (const project of projects) {
-    const card = el("article", "gui-card gui-card--project");
+    const card = el("article", "gui-card gui-card--project gui-card--interactive");
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("aria-label", `Ver detalles de ${project.title}`);
 
     // Screenshot thumbnail
     if (project.screenshots.length > 0) {
@@ -93,6 +123,15 @@ function renderProjects(): HTMLElement {
     card.appendChild(header);
     card.appendChild(stackRow);
     if (footer.children.length > 0) card.appendChild(footer);
+
+    const openDetail = () => onOpenProject(project);
+    card.addEventListener("click", openDetail);
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openDetail();
+      }
+    });
     grid.appendChild(card);
   }
 
@@ -257,11 +296,73 @@ function renderContact(): HTMLElement {
   return wrapper;
 }
 
+function renderProjectModalContent(project: Project): HTMLElement {
+  const content = el("div", "gui-project-modal__content");
+
+  const header = el("header", "gui-project-modal__header");
+  const title = el("h2", "gui-project-modal__title", `cd/${project.name}`);
+  const subtitle = el("p", "gui-project-modal__subtitle", project.title);
+  header.appendChild(title);
+  header.appendChild(subtitle);
+
+  const description = el("p", "gui-project-modal__description", project.description);
+
+  const shotsSection = el("section", "gui-project-modal__section");
+  const shotsHeading = el("h3", "gui-project-modal__section-title", "Capturas");
+  const shotsGrid = el("div", "gui-project-modal__shots");
+  for (const screenshot of project.screenshots) {
+    const shotWrap = el("figure", "gui-project-modal__shot");
+    const img = document.createElement("img");
+    img.src = `/${screenshot.replace(/^public\//, "")}`;
+    img.alt = `${project.title} screenshot`;
+    img.loading = "lazy";
+    img.draggable = false;
+    shotWrap.appendChild(img);
+    shotsGrid.appendChild(shotWrap);
+  }
+  shotsSection.appendChild(shotsHeading);
+  shotsSection.appendChild(shotsGrid);
+
+  const stackSection = el("section", "gui-project-modal__section");
+  const stackHeading = el("h3", "gui-project-modal__section-title", "Stack completo");
+  const stackGrid = el("div", "gui-project-modal__stack");
+  for (const tech of project.stack) {
+    stackGrid.appendChild(buildTechChip(tech));
+  }
+  stackSection.appendChild(stackHeading);
+  stackSection.appendChild(stackGrid);
+
+  const links = el("div", "gui-project-modal__links");
+  if (project.deploy) {
+    const deploy = el("a", "gui-project-modal__link", "Deploy ↗");
+    (deploy as HTMLAnchorElement).href = project.deploy;
+    (deploy as HTMLAnchorElement).target = "_blank";
+    (deploy as HTMLAnchorElement).rel = "noopener noreferrer";
+    links.appendChild(deploy);
+  }
+  for (const repo of project.repos) {
+    const repoLink = el("a", "gui-project-modal__link gui-project-modal__link--dim", "Repo ↗");
+    (repoLink as HTMLAnchorElement).href = repo;
+    (repoLink as HTMLAnchorElement).target = "_blank";
+    (repoLink as HTMLAnchorElement).rel = "noopener noreferrer";
+    links.appendChild(repoLink);
+  }
+
+  content.appendChild(header);
+  content.appendChild(description);
+  content.appendChild(shotsSection);
+  content.appendChild(stackSection);
+  if (links.children.length > 0) content.appendChild(links);
+
+  return content;
+}
+
 // ─── Tab switching ────────────────────────────────────────────────────────────
 
 function activateSection(
   root: HTMLElement,
-  sectionId: GuiSection
+  sectionId: GuiSection,
+  onOpenProject: (project: Project) => void
 ): void {
   root.querySelectorAll<HTMLElement>(".gui-nav-pill").forEach((pill) => {
     pill.classList.toggle("gui-nav-pill--active", pill.dataset["section"] === sectionId);
@@ -274,7 +375,7 @@ function activateSection(
   window.setTimeout(() => {
     contentArea.replaceChildren();
     switch (sectionId) {
-      case "projects": contentArea.appendChild(renderProjects()); break;
+      case "projects": contentArea.appendChild(renderProjects(onOpenProject)); break;
       case "stack":    contentArea.appendChild(renderStack());    break;
       case "events":   contentArea.appendChild(renderEvents());   break;
       case "contact":  contentArea.appendChild(renderContact());  break;
@@ -326,21 +427,44 @@ export function mountGui(host: HTMLElement): UnmountFn {
   }
 
   const contentArea = el("div", "gui-content");
+  const modal = el("div", "gui-project-modal");
+  modal.hidden = true;
+  const modalBackdrop = el("div", "gui-project-modal__backdrop");
+  const modalPanel = el("section", "gui-project-modal__panel");
+  modalPanel.setAttribute("role", "dialog");
+  modalPanel.setAttribute("aria-modal", "true");
+  modalPanel.setAttribute("aria-label", "Detalle de proyecto");
+  modal.appendChild(modalBackdrop);
+  modal.appendChild(modalPanel);
 
   overlay.appendChild(header);
   overlay.appendChild(nav);
   overlay.appendChild(contentArea);
+  overlay.appendChild(modal);
   host.appendChild(overlay);
 
-  activateSection(overlay, "projects");
+  const closeProjectModal = (): void => {
+    modal.hidden = true;
+    modalPanel.replaceChildren();
+  };
+
+  const openProjectModal = (project: Project): void => {
+    modalPanel.replaceChildren(renderProjectModalContent(project));
+    modal.hidden = false;
+  };
+
+  activateSection(overlay, "projects", openProjectModal);
 
   const onNavClick = (e: MouseEvent) => {
     const pill = (e.target as HTMLElement).closest<HTMLElement>(".gui-nav-pill");
     if (pill?.dataset["section"]) {
-      activateSection(overlay, pill.dataset["section"] as GuiSection);
+      closeProjectModal();
+      activateSection(overlay, pill.dataset["section"] as GuiSection, openProjectModal);
     }
   };
   nav.addEventListener("click", onNavClick);
+  modalBackdrop.addEventListener("click", closeProjectModal);
+  modalPanel.addEventListener("click", (event) => event.stopPropagation());
 
   const unmount = () => {
     overlay.classList.add("gui-overlay--exit");
@@ -354,7 +478,11 @@ export function mountGui(host: HTMLElement): UnmountFn {
   const onKeydown = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       e.preventDefault();
-      unmount();
+      if (!modal.hidden) {
+        closeProjectModal();
+      } else {
+        unmount();
+      }
     }
   };
   document.addEventListener("keydown", onKeydown);
