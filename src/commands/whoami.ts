@@ -10,7 +10,7 @@ export function cmdWhoami(_args: string[]): OutputLine[] {
       color: "white",
     },
     {
-      text: "Soy un entusiasta de Linux y de servidores, también pienso desarrollarme en redes ciberseguridad. Por el momento domino el desarrollo web moderno y apunto a construir herramientas que resuelvan problemas reales.",
+      text: "Soy un entusiasta de Linux y de servidores, también pienso desarrollarme en redes y ciberseguridad. Por el momento domino el desarrollo web moderno y apunto a construir herramientas que resuelvan problemas reales.",
       color: "dim",
     },
     {

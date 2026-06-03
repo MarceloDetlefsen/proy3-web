@@ -4,7 +4,7 @@ export function cmdHobbies(_args: string[]): OutputLine[] {
   return [
     // ── Música ───────────────────────────────────────────────────────────
     { text: "🎶  Música", bold: true, color: "cyan" },
-    { text: "   Siempre en formato de álbum completo, nunca shuffle.", color: "dim" },
+    { text: "   Siempre escucho en formato de álbum completo, me parece la forma más pura de disfrutar de la música.", color: "dim" },
     { text: "   Los fondos de pantalla de esta terminal son portadas de algunos de mis álbumes favoritos.", color: "white" },
     { text: "" },
     { text: "   Géneros favoritos", bold: true, color: "yellow" },
@@ -14,7 +14,7 @@ export function cmdHobbies(_args: string[]): OutputLine[] {
     // ── Tenis ────────────────────────────────────────────────────────────
     { text: "🎾  Tenis", bold: true, color: "cyan" },
     { text: "   Mi jugador favorito es Dominic Thiem.", color: "dim" },
-    { text: "   Empecé a los 12 años y llegué a ser top 5 juvenil a nivel nacional en Guatemala.", color: "white" },
+    { text: "   Empecé a jugar a los 12 años y llegué a ser top 5 juvenil a nivel nacional en Guatemala.", color: "white" },
     { text: "" },
 
     // ── Basket ───────────────────────────────────────────────────────────
@@ -27,7 +27,7 @@ export function cmdHobbies(_args: string[]): OutputLine[] {
     { text: "🎮  Videojuegos", bold: true, color: "cyan" },
     { text: "   Nintendero de corazón. Las sagas que más me han marcado son Xenoblade Chronicles, Zelda y Pikmin.", color: "white" },
     { text: "" },
-    { text: "   Indie favoritos", bold: true, color: "yellow" },
+    { text: "   Indies favoritos", bold: true, color: "yellow" },
     { text: "   Celeste  ·  Hollow Knight: Silksong  ·  Dead Cells", color: "white" },
   ]
 }
