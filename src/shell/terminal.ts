@@ -778,6 +778,17 @@ export function bootTerminal({
           resetScreenshotViewer();
           currentView = "other";
           onProjectChange?.(currentProject);
+        } else if (cmd === "open") {
+          if (args.includes("--gui")) {
+            currentView = "other";
+            onProjectChange?.(null);
+            onEventsChange?.(false);
+            mountGui(host.ownerDocument.body);
+          } else {
+            const lines = registry[cmd].run(args);
+            currentView = "other";
+            renderLines(terminal, lines);
+          }
         } else if (cmd in registry) {
           if (cmd === "cd") {
             const target = args.join(" ").trim();
@@ -858,17 +869,6 @@ export function bootTerminal({
             onProjectChange?.(null);
             onEventsChange?.(true);
             renderLines(terminal, lines);
-          } else {
-            const lines = registry[cmd].run(args);
-            currentView = "other";
-            renderLines(terminal, lines);
-          }
-          } else if (cmd === "open") {
-          if (args.includes("--gui")) {
-            currentView = "other";
-            onProjectChange?.(null);
-            onEventsChange?.(false);
-            mountGui(host.ownerDocument.body);
           } else {
             const lines = registry[cmd].run(args);
             currentView = "other";
