@@ -638,6 +638,10 @@ export function bootTerminal({
     `  ${ANSI.dim}Escribe ${ANSI.reset}${ANSI.yellow}help${ANSI.reset}${ANSI.dim} para ver los comandos disponibles.${ANSI.reset}`
   );
   terminal.writeln("");
+  terminal.writeln(
+    `  ${ANSI.dim}Escribe ${ANSI.reset}${ANSI.yellow}open --gui ${ANSI.reset}${ANSI.dim} para abrir la versión gráfica de este portafolio.${ANSI.reset}`
+  );
+  terminal.writeln("");
   terminal.writeln(`  ${ANSI.dim}Recarga la página si quieres cambiar el fondo.${ANSI.reset}`);
   terminal.writeln("");
 

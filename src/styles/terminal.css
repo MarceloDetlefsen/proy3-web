@@ -187,7 +187,8 @@
   border: 1px solid rgba(125, 211, 252, 0.28);
   border-radius: 0.85rem;
   overflow: hidden;
-  background: rgba(2, 6, 23, 0.34);
+  background: rgba(2, 6, 23, 0.2);
+  isolation: isolate;
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
 
@@ -264,6 +265,8 @@
 }
 
 .project-gallery {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
   padding: 0.8rem 1rem 1rem;
   border-top: 1px solid rgba(125, 211, 252, 0.12);
@@ -302,6 +305,8 @@
 }
 
 .event-gallery {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
   padding: 0.8rem 1rem 1rem;
   border-top: 1px solid rgba(125, 211, 252, 0.12);
@@ -442,11 +447,14 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.18), rgba(2, 6, 23, 0.28));
+  backdrop-filter: blur(26px) saturate(1.5);
+  -webkit-backdrop-filter: blur(26px) saturate(1.5);
   pointer-events: none;
+  z-index: 0;
   box-shadow:
-    0 0 0 1px rgba(125, 211, 252, 0.18) inset,
-    0 0 18px rgba(125, 211, 252, 0.08) inset;
-  z-index: 25;
+    0 0 0 1px rgba(125, 211, 252, 0.14) inset,
+    0 0 18px rgba(125, 211, 252, 0.06) inset;
 }
 
 .terminal-card canvas {
