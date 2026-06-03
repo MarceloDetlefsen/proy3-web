@@ -314,9 +314,9 @@ function renderProjectModalContent(project: Project): HTMLElement {
   for (const screenshot of project.screenshots) {
     const shotWrap = el("figure", "gui-project-modal__shot");
     const img = document.createElement("img");
-    img.src = `/${screenshot.replace(/^public\//, "")}`;
+    img.src = assetUrl(screenshot);
     img.alt = `${project.title} screenshot`;
-    img.loading = "lazy";
+    img.loading = "eager";
     img.draggable = false;
     shotWrap.appendChild(img);
     shotsGrid.appendChild(shotWrap);
