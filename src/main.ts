@@ -53,11 +53,6 @@ const workspaceDots = Array.from({ length: 6 }, (_, i) => {
   return `<span class="${cls}"></span>`;
 }).join("");
 
-function isBlurTestEnabled(): boolean {
-  const params = new URLSearchParams(window.location.search);
-  return params.has("blur-test") || params.has("debug-blur");
-}
-
 app.innerHTML = `
   <main class="app-shell">
     <section class="frame" aria-label="Hypr-folio terminal">
@@ -80,7 +75,7 @@ app.innerHTML = `
       </header>
 
       <div class="terminal-card" id="terminal-wrapper" role="main">
-        <div class="terminal-blur-test" aria-hidden="true"></div>
+        <div class="terminal-backdrop" aria-hidden="true"></div>
         <div class="terminal-glass" aria-hidden="true"></div>
         <div class="terminal-titlebar" aria-hidden="true">
           <span class="titlebar-icon"></span>
@@ -106,7 +101,6 @@ if (appShell !== null) {
   const wallpaper = pickRandomWallpaper();
   const wallpaperImage = wallpaper === "" ? "none" : `url("${assetUrl(wallpaper)}")`;
   appShell.style.setProperty("--wallpaper-image", wallpaperImage);
-  appShell.dataset.blurTest = isBlurTestEnabled() ? "true" : "false";
 }
 
 // Reloj + fecha
