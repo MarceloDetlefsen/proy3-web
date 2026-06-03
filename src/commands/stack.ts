@@ -14,7 +14,7 @@ export function cmdStack(_args: string[]): OutputLine[] {
   for (const [category, items] of Object.entries(grouped)) {
     lines.push({ text: category, bold: true })
     for (const item of items) {
-      lines.push({ text: `  ${item.name.padEnd(16)} ${String(item.percentage).padStart(3)}%` })
+      lines.push({ text: `  ${item.name.padEnd(18)} ${String(item.percentage).padStart(3)}%` })
     }
   }
 

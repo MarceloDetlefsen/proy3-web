@@ -12,6 +12,8 @@ import { cmdContact } from "@/commands/contact";
 import { cmdGui } from "@/commands/gui";
 import { cmdClear } from "@/commands/clear";
 import type { Project } from "@/data/projects";
+import { stack as globalStack } from "@/data/stack";
+import { getTechIconSvg } from "@/data/tech-icons";
 import { pickRandomWallpaper } from "@/wallpapers";
 
 const registry: CommandRegistry = {
@@ -77,6 +79,7 @@ app.innerHTML = `
         </div>
         <div class="terminal-body">
           <div id="terminal"></div>
+          <section class="tech-panel" id="tech-panel" aria-live="polite"></section>
           <section class="project-gallery" id="project-gallery" hidden aria-live="polite">
             <div class="project-gallery-grid" id="project-gallery-grid"></div>
           </section>
@@ -113,21 +116,134 @@ if (terminalHost === null) throw new Error("No se encontró el contenedor de la 
 
 const galleryRoot = document.querySelector<HTMLElement>("#project-gallery");
 const galleryGrid = document.querySelector<HTMLElement>("#project-gallery-grid");
+const techPanel = document.querySelector<HTMLElement>("#tech-panel");
 
 const terminal = bootTerminal({ host: terminalHost, registry, onProjectChange: renderGallery });
 
+function createTechChip(name: string, percentage?: number): HTMLElement {
+  const chip = document.createElement("article");
+  chip.className = "tech-chip";
+
+  const icon = document.createElement("span");
+  icon.className = "tech-chip-icon";
+  const svg = getTechIconSvg(name);
+  if (svg !== null) {
+    icon.innerHTML = svg;
+  } else {
+    icon.classList.add("tech-chip-icon--fallback");
+    icon.textContent = name
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part[0] ?? "")
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  }
+
+  const label = document.createElement("span");
+  label.className = "tech-chip-label";
+  label.textContent = name;
+
+  chip.append(icon, label);
+
+  if (typeof percentage === "number") {
+    const badge = document.createElement("span");
+    badge.className = "tech-chip-percent";
+    badge.textContent = `${percentage}%`;
+    chip.append(badge);
+  }
+
+  return chip;
+}
+
+function createTechGroup(title: string, subtitle: string, chips: HTMLElement[]): HTMLElement {
+  const group = document.createElement("section");
+  group.className = "tech-group";
+
+  const header = document.createElement("header");
+  header.className = "tech-group-header";
+
+  const titleEl = document.createElement("span");
+  titleEl.className = "tech-group-title";
+  titleEl.textContent = title;
+
+  const subtitleEl = document.createElement("span");
+  subtitleEl.className = "tech-group-subtitle";
+  subtitleEl.textContent = subtitle;
+
+  header.append(titleEl, subtitleEl);
+
+  const row = document.createElement("div");
+  row.className = "tech-chip-row";
+  row.append(...chips);
+
+  group.append(header, row);
+  return group;
+}
+
+function renderTechPanel(project: Project | null): void {
+  if (techPanel === null) {
+    return;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "tech-panel-inner";
+
+  const header = document.createElement("header");
+  header.className = "tech-panel-header";
+
+  const title = document.createElement("span");
+  title.className = "tech-panel-title";
+  title.textContent = project === null ? "Stack técnico" : "Stack del proyecto";
+
+  const subtitle = document.createElement("span");
+  subtitle.className = "tech-panel-subtitle";
+  subtitle.textContent =
+    project === null
+      ? "Logos reales de las tecnologías principales"
+      : "Tecnologías usadas en este proyecto";
+
+  header.append(title, subtitle);
+  wrapper.append(header);
+
+  if (project === null) {
+    const grouped = globalStack.reduce<Record<string, HTMLElement[]>>((acc, item) => {
+      const chips = acc[item.category] ?? [];
+      chips.push(createTechChip(item.name, item.percentage));
+      acc[item.category] = chips;
+      return acc;
+    }, {});
+
+    for (const [category, chips] of Object.entries(grouped)) {
+      wrapper.append(
+        createTechGroup(category, "Resumen", chips),
+      );
+    }
+  } else {
+    const chips = project.stack.map((tech) => createTechChip(tech));
+    wrapper.append(
+      createTechGroup(project.title, "Tecnologías del proyecto", chips),
+    );
+  }
+
+  techPanel.replaceChildren(wrapper);
+}
+
 function renderGallery(project: Project | null): void {
   if (galleryRoot === null || galleryGrid === null) {
+    renderTechPanel(project);
     return;
   }
 
   if (project === null) {
     galleryRoot.hidden = true;
     galleryGrid.replaceChildren();
+    renderTechPanel(null);
     return;
   }
 
   galleryRoot.hidden = false;
+  renderTechPanel(project);
   galleryGrid.replaceChildren(
     ...project.screenshots.map((screenshot, index) => {
       const src = `/${screenshot.replace(/^public\//, "")}`;
@@ -152,3 +268,5 @@ function renderGallery(project: Project | null): void {
     }),
   );
 }
+
+renderGallery(null);

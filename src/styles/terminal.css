@@ -263,6 +263,114 @@
   z-index: 30;
 }
 
+.tech-panel {
+  flex: 0 0 auto;
+  padding: 0.85rem 1rem 0.25rem;
+  border-top: 1px solid rgba(125, 211, 252, 0.12);
+  background:
+    linear-gradient(180deg, rgba(2,6,23,0.02), rgba(2,6,23,0.14));
+}
+
+.tech-panel-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.tech-panel-header,
+.tech-group-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.tech-panel-title,
+.tech-group-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.73rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #7dd3fc;
+}
+
+.tech-panel-subtitle,
+.tech-group-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tech-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tech-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.tech-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.16);
+  background:
+    linear-gradient(180deg, rgba(15,23,42,0.72), rgba(2,6,23,0.62));
+  box-shadow:
+    0 0 0 1px rgba(2,6,23,0.28) inset,
+    0 10px 20px rgba(2,6,23,0.2);
+}
+
+.tech-chip-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #7dd3fc;
+}
+
+.tech-chip-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
+.tech-chip-icon--fallback {
+  border-radius: 0.35rem;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  background: rgba(15,23,42,0.95);
+  color: #7dd3fc;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  line-height: 1;
+}
+
+.tech-chip-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.67rem;
+  color: #e2e8f0;
+  white-space: nowrap;
+}
+
+.tech-chip-percent {
+  margin-left: 0.1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  color: #94a3b8;
+}
+
 .project-gallery {
   flex: 0 0 auto;
   padding: 0.8rem 1rem 1rem;
@@ -375,4 +483,10 @@
   #clock { font-size: 0.7rem; min-width: auto; }
 
   .terminal-card { border-radius: 0.65rem; }
+
+  .tech-panel,
+  .project-gallery {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
 }
