@@ -508,6 +508,12 @@ async function renderProjectDetails(terminal: Terminal, project: Project): Promi
     terminal.writeln("");
     renderOutputLine(terminal, { text: `Deploy: ${project.deploy}`, color: "magenta" });
   }
+
+  terminal.writeln("");
+  renderOutputLine(terminal, {
+    text: "Para volver a la carpeta central escribe: cd ..",
+    color: "dim",
+  });
 }
 
 async function renderGlobalStackDetails(terminal: Terminal): Promise<void> {
@@ -629,6 +635,8 @@ export function bootTerminal({
     `  ${ANSI.dim}Escribe ${ANSI.reset}${ANSI.yellow}help${ANSI.reset}${ANSI.dim} para ver los comandos disponibles.${ANSI.reset}`
   );
   terminal.writeln("");
+  terminal.writeln(`  ${ANSI.dim}Recarga la página si quieres cambiar el fondo.${ANSI.reset}`);
+  terminal.writeln("");
 
   // ── Input buffer + historial ──────────────────────────────────────────────────
   let inputBuffer = "";
@@ -669,7 +677,7 @@ export function bootTerminal({
     terminal.focus();
 
     try {
-      terminal.writeln(`${ANSI.dim}Esc para volver${ANSI.reset}`);
+      terminal.writeln(`${ANSI.dim}Presiona "Esc" para volver${ANSI.reset}`);
       terminal.writeln("");
       const sequence = await buildIipSequence(src, caption);
       terminal.write(sequence, () => {

@@ -70,9 +70,9 @@
 - [x] Probar que la navegación entre root y proyectos sea consistente
 
 ### Fase 6 — Comando `fastfetch`
-- [ ] Diseñar ASCII art (logo personal o distro ficticia)
-- [ ] Layout dos columnas: ASCII a la izquierda, stats a la derecha
-- [ ] Stats: OS, Shell, WM, Languages, Uptime, etc. — todos personalizados
+- [X] Diseñar ASCII art (logo personal o distro ficticia)
+- [X] Layout dos columnas: ASCII a la izquierda, stats a la derecha
+- [X] Stats: OS, Shell, WM, Languages, Uptime, etc. — todos personalizados
 
 ### Fase 7 — Modo GUI (`open --gui`)
 - [ ] Toggle que renderiza una vista de cards sobre la terminal
@@ -81,9 +81,9 @@
 - [ ] Transición animada entre modos
 
 ### Fase 8 — Comando `stack`
-- [ ] Array de tecnologías con porcentaje de dominio
-- [ ] Barras animadas que se llenan al renderizar
-- [ ] Agrupadas por categoría (Frontend, Backend, Infra, DB, etc.)
+- [X] Array de tecnologías con porcentaje de dominio
+- [X] Barras animadas que se llenan al renderizar
+- [X] Agrupadas por categoría (Frontend, Backend, Infra, DB, etc.)
 
 ### Fase 9 — Deploy y producción
 - [ ] Build con `bun run build`

@@ -35,6 +35,10 @@ export function cmdCd(args: string[]): OutputLine[] {
   const deployLine: OutputLine | null = project.deploy
     ? { text: `Deploy: ${project.deploy}`, color: "magenta" as OutputLine["color"] }
     : null
+  const backHintLine: OutputLine = {
+    text: "Para volver a la carpeta central escribe: cd ..",
+    color: "dim",
+  }
 
   return [
     titleLine,
@@ -44,5 +48,7 @@ export function cmdCd(args: string[]): OutputLine[] {
     ...stackLines,
     ...(project.repos.length > 0 ? [sectionBreak, ...repoLines] : []),
     ...(deployLine !== null ? [sectionBreak, deployLine] : []),
+    sectionBreak,
+    backHintLine,
   ]
 }
