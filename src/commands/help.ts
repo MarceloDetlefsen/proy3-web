@@ -1,5 +1,11 @@
 import type { OutputLine } from "./index"
 
+const ANSI = {
+  cyan: "\x1b[36m",
+  dim: "\x1b[2m",
+  reset: "\x1b[0m",
+} as const
+
 const commands = [
   ["help", "Lista todos los comandos disponibles"],
   ["whoami", "Bio, foto y enlaces"],
@@ -17,6 +23,8 @@ const commands = [
 export function cmdHelp(_args: string[]): OutputLine[] {
   return [
     { text: "Comandos disponibles:", bold: true },
-    ...commands.map(([name, description]) => ({ text: `${name.padEnd(12)} ${description}` })),
+    ...commands.map(([name, description]) => ({
+      text: `${ANSI.cyan}${name.padEnd(12)}${ANSI.reset} ${ANSI.dim}${description}${ANSI.reset}`,
+    })),
   ]
 }
