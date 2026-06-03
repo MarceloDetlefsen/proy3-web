@@ -69,6 +69,40 @@ function getLsLines(project: Project | null): OutputLine[] {
   return [{ text: "screenshots/" }];
 }
 
+type TerminalSnapshot = {
+  lines: string[];
+  project: Project | null;
+};
+
+function captureSnapshot(terminal: Terminal, project: Project | null): TerminalSnapshot {
+  const buffer = terminal.buffer.active;
+  const lines: string[] = [];
+
+  for (let y = 0; y < buffer.length; y++) {
+    const line = buffer.getLine(y);
+    lines.push(line?.translateToString(true) ?? "");
+  }
+
+  while (lines.length > 0 && lines[lines.length - 1].trim().length === 0) {
+    lines.pop();
+  }
+
+  return { lines, project };
+}
+
+function restoreSnapshot(terminal: Terminal, snapshot: TerminalSnapshot, cwd: string): void {
+  terminal.write("\u001b[2J\u001b[3J\u001b[H");
+
+  if (snapshot.lines.length > 0) {
+    terminal.write(snapshot.lines.join("\r\n"));
+  }
+
+  terminal.writeln("");
+  terminal.writeln(`${ANSI.dim}historial retomado${ANSI.reset}`);
+  terminal.writeln("");
+  terminal.write(buildPrompt(cwd));
+}
+
 function redrawInput(terminal: Terminal, inputBuffer: string, cwd: string): void {
   terminal.write(`\r\u001b[2K${buildPrompt(cwd)}${inputBuffer}`);
 }
@@ -86,6 +120,7 @@ function syncViewport(terminal: Terminal): void {
 
 export function bootTerminal({ host, registry, onProjectChange }: BootOptions): Terminal {
   let currentProject: Project | null = null;
+  const sessionStack: TerminalSnapshot[] = [];
   const terminal = new Terminal({
     // Sin cols/rows fijos — FitAddon los calcula según el contenedor real.
     cursorBlink: true,
@@ -180,6 +215,7 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
       const raw = inputBuffer.trim();
       inputBuffer = "";
       historyIndex = -1;
+      let restoredSession = false;
 
       if (raw.length > 0) {
         history.unshift(raw);
@@ -197,17 +233,36 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
                 `${ANSI.red}cd: primero ejecuta 'cd ..' para salir de ${currentProject.title}${ANSI.reset}`
               );
               terminal.writeln(`${ANSI.dim}  Ahora mismo estas en ${getCwd()}${ANSI.reset}`);
+              onProjectChange?.(currentProject);
             } else {
               const lines = registry[cmd].run(args);
-              renderLines(terminal, lines);
 
               if (target === "..") {
-                currentProject = null;
-                onProjectChange?.(null);
+                const snapshot = sessionStack.pop();
+
+                if (snapshot !== undefined) {
+                  currentProject = snapshot.project;
+                  onProjectChange?.(currentProject);
+                  restoreSnapshot(terminal, snapshot, getCwd());
+                  restoredSession = true;
+                } else {
+                  renderLines(terminal, lines);
+                  currentProject = null;
+                  onProjectChange?.(null);
+                }
               } else if (target.length > 0) {
                 const project = findProjectByIdentifier(target);
-                currentProject = project ?? null;
-                onProjectChange?.(project ?? null);
+                if (project !== undefined) {
+                  sessionStack.push(captureSnapshot(terminal, currentProject));
+                  currentProject = project;
+                  onProjectChange?.(project);
+                  terminal.write("\u001b[2J\u001b[3J\u001b[H");
+                  renderLines(terminal, lines);
+                } else {
+                  renderLines(terminal, lines);
+                  currentProject = null;
+                  onProjectChange?.(null);
+                }
               }
             }
           } else if (cmd === "ls") {
@@ -223,6 +278,11 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
           terminal.writeln(`${ANSI.dim}  Prueba con 'help'${ANSI.reset}`);
           onProjectChange?.(currentProject);
         }
+      }
+
+      if (restoredSession) {
+        syncViewport(terminal);
+        return;
       }
 
       terminal.writeln("");
