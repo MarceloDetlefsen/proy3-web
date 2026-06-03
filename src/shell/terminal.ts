@@ -267,6 +267,7 @@ export function bootTerminal({ host, registry, onProjectChange }: BootOptions): 
     activeScreenshotSrc = src;
 
     terminal.write("\u001b[2J\u001b[3J\u001b[H");
+    terminal.writeln(`${ANSI.dim}Pulsa Esc para salir de la captura.${ANSI.reset}`);
 
     try {
       const sequence = await buildIipSequence(src, caption);
