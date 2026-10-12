@@ -1,4 +1,4 @@
-import { projects } from "@/data/projects";
+import { orderedProjects } from "@/data/projects";
 import type { Project } from "@/data/projects";
 import { stack } from "@/data/stack";
 import { events } from "@/data/events";
@@ -73,7 +73,7 @@ function buildTechChip(name: string): HTMLElement {
 function renderProjects(onOpenProject: (project: Project) => void): HTMLElement {
   const grid = el("div", "gui-grid");
 
-  for (const project of projects) {
+  for (const project of orderedProjects) {
     const card = el("article", "gui-card gui-card--project gui-card--interactive");
     card.setAttribute("role", "button");
     card.setAttribute("tabindex", "0");
@@ -92,7 +92,7 @@ function renderProjects(onOpenProject: (project: Project) => void): HTMLElement 
     }
 
     const header = el("div", "gui-card__header");
-    const name   = el("h3",  "gui-card__title", `cd/${project.name}`);
+    const name   = el("h3",  "gui-card__title", `${project.featured ? "★ " : ""}cd/${project.name}`);
     const desc   = el("p",   "gui-card__desc",  project.description);
 
     header.appendChild(name);

@@ -6,6 +6,7 @@ export type Project = {
   repos: string[]
   deploy?: string
   screenshots: string[]
+  featured?: boolean
 }
 
 function normalizeProjectKey(value: string): string {
@@ -42,6 +43,7 @@ export const projects: Project[] = [
   },
   {
     name: "BodegaDeLicores",
+    featured: true,
     title: "Bodegas de Licores",
     description:
       "Plataforma web para la gestion y compra de productos de bodega, con experiencia separada para clientes y administracion. El proyecto cubre catalogo, carrito, pedidos, inventario, promociones y control de acceso por roles.",
@@ -99,6 +101,7 @@ export const projects: Project[] = [
   },
   {
     name: "DragonStats",
+    featured: true,
     title: "DragonStats",
     description:
       "Aplicacion movil para gestion y visualizacion de estadisticas de torneos de futbol. El proyecto organiza informacion de partidos, equipos, jugadores y fases del torneo en una experiencia pensada para consulta rapida y analisis visual.",
@@ -155,6 +158,7 @@ export const projects: Project[] = [
   },
   {
     name: "HeritageRecords",
+    featured: true,
     title: "Heritage Records",
     description:
       "Sistema interno para la operacion de una tienda especializada en formatos fisicos de musica, centrado en inventario, ventas, clientes, reportes y control de acceso por roles.",
@@ -220,6 +224,7 @@ export const projects: Project[] = [
   },
   {
     name: "ChronoTriggerCampfire",
+    featured: true,
     title: "Chrono Trigger Campfire - Diorama Raytracer",
     description:
       "Raytracer CPU interactivo desarrollado desde cero en Rust para renderizar un diorama voxel inspirado en el campamento nocturno de Chrono Trigger. Implementa trazado de rayos paralelizado, aceleración espacial mediante Voxel Grid con DDA 3D, terreno procedural, materiales con reflexión y refracción, iluminación dinámica y cámara orbital.",
@@ -268,6 +273,7 @@ export const projects: Project[] = [
   },
   {
     name: "Aequvg",
+    featured: true,
     title: "Plataforma institucional de la Asociación de Estudiantes de Química UVG",
     description:
       "Plataforma web para centralizar la información institucional, noticias, recursos académicos, proyectos, eventos y medios de contacto de la Asociación de Estudiantes de Química de la UVG. Utiliza un frontend SSR con Nuxt y Vue, un backend modular REST con Elysia y persistencia relacional mediante Prisma y PostgreSQL.",
@@ -316,3 +322,8 @@ export const projects: Project[] = [
     ],
   },
 ]
+
+export const orderedProjects: Project[] = [...projects].sort((a, b) => {
+  if (a.featured !== b.featured) return a.featured ? -1 : 1
+  return a.name.localeCompare(b.name)
+})

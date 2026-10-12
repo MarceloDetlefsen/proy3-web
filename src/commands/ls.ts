@@ -1,6 +1,6 @@
 import type { OutputLine } from "./index"
-import { projects } from "@/data/projects"
+import { orderedProjects } from "@/data/projects"
 
 export function cmdLs(_args: string[]): OutputLine[] {
-  return projects.map((project) => ({ text: `${project.name}/` }))
+  return orderedProjects.map((project) => ({ text: `${project.featured ? "★ " : "  "}${project.name}/` }))
 }

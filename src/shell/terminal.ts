@@ -5,7 +5,7 @@ import { ImageAddon } from "@xterm/addon-image";
 import "@xterm/xterm/css/xterm.css";
 import { parseInput } from "./parser";
 import type { CommandRegistry, OutputLine } from "@/commands/index";
-import { findProjectByIdentifier, projects } from "@/data/projects";
+import { findProjectByIdentifier, orderedProjects, projects } from "@/data/projects";
 import type { Project } from "@/data/projects";
 import { getTechIcon } from "@/data/tech-icons";
 import { stack as globalStack } from "@/data/stack";
@@ -98,7 +98,7 @@ function renderLines(terminal: Terminal, lines: OutputLine[]): void {
 
 function getLsLines(project: Project | null): OutputLine[] {
   if (project === null) {
-    return projects.map((item) => ({ text: `${item.name}/` }));
+    return orderedProjects.map((item) => ({ text: `${item.featured ? "★ " : "  "}${item.name}/` }));
   }
 
   return [{ text: "screenshots/" }];
