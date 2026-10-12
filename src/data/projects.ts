@@ -64,7 +64,7 @@ export const projects: Project[] = [
       "https://github.com/eldmark/bodegas-frontend.git",
       "https://github.com/eldmark/bodegas-backend.git",
     ],
-    deploy: "http://34.174.123.107:5173/index",
+    deploy: "https://bodegadelicores.app",
     screenshots: [
       "public/proyects/BodegaDeLicores1.webp",
       "public/proyects/BodegaDeLicores2.webp",
