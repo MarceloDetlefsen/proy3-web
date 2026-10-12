@@ -2,12 +2,13 @@ import { projects } from "@/data/projects";
 import type { Project } from "@/data/projects";
 import { stack } from "@/data/stack";
 import { events } from "@/data/events";
+import { hobbyCards } from "@/data/hobbies";
 import { getTechIconSvg } from "@/data/tech-icons";
 import { assetUrl } from "@/assets";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type GuiSection = "projects" | "stack" | "events" | "contact";
+type GuiSection = "projects" | "stack" | "events" | "hobbies" | "contact";
 
 type UnmountFn = () => void;
 
@@ -17,6 +18,7 @@ const SECTIONS: { id: GuiSection; label: string; icon: string }[] = [
   { id: "projects", label: "Proyectos", icon: "⬡" },
   { id: "stack",    label: "Stack",     icon: "◈" },
   { id: "events",   label: "Events",    icon: "◎" },
+  { id: "hobbies",  label: "Hobbies",   icon: "✦" },
   { id: "contact",  label: "Contacto",  icon: "◇" },
 ];
 
@@ -254,6 +256,50 @@ function renderEvents(): HTMLElement {
   return grid;
 }
 
+function renderHobbies(): HTMLElement {
+  const grid = el("div", "gui-hobbies-grid");
+
+  for (const hobby of hobbyCards) {
+    const card = el("article", "gui-hobby-card");
+    const media = el("div", "gui-hobby-card__media");
+    let activeIndex = 0;
+    const img = document.createElement("img");
+    img.src = assetUrl(hobby.images[activeIndex]);
+    img.alt = hobby.title;
+    img.loading = "lazy";
+    img.draggable = false;
+    media.appendChild(img);
+
+    if (hobby.images.length > 1) {
+      const updateImage = (nextIndex: number): void => {
+        activeIndex = (nextIndex + hobby.images.length) % hobby.images.length;
+        img.src = assetUrl(hobby.images[activeIndex]);
+      };
+      const previous = document.createElement("button");
+      previous.className = "gui-hobby-card__carousel-button gui-hobby-card__carousel-button--previous";
+      previous.type = "button";
+      previous.textContent = "‹";
+      previous.setAttribute("aria-label", "Imagen anterior");
+      previous.addEventListener("click", () => updateImage(activeIndex - 1));
+      const next = document.createElement("button");
+      next.className = "gui-hobby-card__carousel-button gui-hobby-card__carousel-button--next";
+      next.type = "button";
+      next.textContent = "›";
+      next.setAttribute("aria-label", "Imagen siguiente");
+      next.addEventListener("click", () => updateImage(activeIndex + 1));
+      media.append(previous, next);
+    }
+
+    const body = el("div", "gui-hobby-card__body");
+    body.appendChild(el("h3", "gui-hobby-card__title", hobby.title));
+    body.appendChild(el("p", "gui-hobby-card__desc", hobby.description));
+    card.append(media, body);
+    grid.appendChild(card);
+  }
+
+  return grid;
+}
+
 function renderContact(): HTMLElement {
   const wrapper = el("div", "gui-contact-wrapper");
 
@@ -405,6 +451,7 @@ function activateSection(
       case "projects": contentArea.appendChild(renderProjects(onOpenProject)); break;
       case "stack":    contentArea.appendChild(renderStack());    break;
       case "events":   contentArea.appendChild(renderEvents());   break;
+      case "hobbies":  contentArea.appendChild(renderHobbies());  break;
       case "contact":  contentArea.appendChild(renderContact());  break;
     }
     contentArea.classList.remove("gui-content--out");

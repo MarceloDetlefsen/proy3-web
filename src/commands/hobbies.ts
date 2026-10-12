@@ -29,5 +29,13 @@ export function cmdHobbies(_args: string[]): OutputLine[] {
     { text: "" },
     { text: "   Indies favoritos", bold: true, color: "yellow" },
     { text: "   Celeste  ·  Hollow Knight: Silksong  ·  Dead Cells", color: "white" },
+    { text: "" },
+
+    // ── Linux ────────────────────────────────────────────────────────────
+    { text: "🐧  Linux", bold: true, color: "cyan" },
+    { text: "   Me gusta mucho Linux y mantener mi propio rice con mis configuraciones y dotfiles.", color: "dim" },
+    { text: "   Puedes encontrar mi configuración aquí: https://github.com/MarceloDetlefsen/hyprland-dotfiles.git", color: "white" },
+    { text: "   He probado varias distribuciones a lo largo del tiempo, pero finalmente me quedé con las basadas en Arch por lo increíblemente personalizables que son.", color: "white" },
+    { text: "   Mis gestores de ventanas favoritos son Hyprland y Niri.", color: "white" },
   ]
 }
