@@ -28,7 +28,7 @@ export const registry: CommandRegistry = {
   whoami: { description: "Bio y enlaces personales", run: cmdWhoami },
   ls: { description: "Lista proyectos", run: cmdLs },
   cd: { description: "Entra a un proyecto", run: cmdCd },
-  stack: { description: "Stack técnico", run: cmdStack },
+  stack: { description: "Stack técnico con nivel de dominio", run: cmdStack },
   hobbies: { description: "Hobbies personales", run: cmdHobbies },
   fastfetch: { description: "Info estilo sistema", run: cmdFastfetch },
   events: { description: "Participaciones en eventos CS", run: cmdEvents },

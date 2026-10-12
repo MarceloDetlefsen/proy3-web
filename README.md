@@ -47,7 +47,7 @@ hypr-folio/
     │   └── gui.ts           # Lógica del toggle GUI
     ├── data/
     │   ├── projects.ts      # Array con todos tus proyectos
-    │   └── stack.ts         # Array con tecnologías y porcentajes
+    │   └── stack.ts         # Array con tecnologías y nivel de dominio
     ├── gui/
     │   ├── index.ts         # Monta/desmonta el modo visual
     │   └── gui.css

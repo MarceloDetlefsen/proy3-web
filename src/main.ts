@@ -22,7 +22,7 @@ const registry: CommandRegistry = {
   whoami:    { description: "Sobre mí",                          run: cmdWhoami },
   ls:        { description: "Lista proyectos",                   run: cmdLs },
   cd:        { description: "Entra a un proyecto (cd <name>)",   run: cmdCd },
-  stack:     { description: "Stack técnico con porcentajes",     run: cmdStack },
+  stack:     { description: "Stack técnico con nivel de dominio", run: cmdStack },
   hobbies:   { description: "Mis hobbies",                       run: cmdHobbies },
   fastfetch: { description: "Info del sistema",                  run: cmdFastfetch },
   events:    { description: "Eventos y participaciones CS",     run: cmdEvents },
