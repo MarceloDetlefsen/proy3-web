@@ -138,6 +138,7 @@ type EventGalleryCard = {
   title: string;
   description: string;
   srcs: string[];
+  imagePositions?: string[];
 };
 
 const terminal = bootTerminal({
@@ -228,12 +229,18 @@ function renderEventGallery(cards: EventGalleryCard[]): void {
         img.loading = "lazy";
         img.draggable = false;
         img.className = "event-card-image";
+        if (card.imagePositions?.[activeIndex] !== undefined) {
+          img.style.objectPosition = card.imagePositions[activeIndex];
+        }
         carousel.appendChild(img);
 
         if (card.srcs.length > 1) {
           const updateImage = (nextIndex: number): void => {
             activeIndex = (nextIndex + card.srcs.length) % card.srcs.length;
             img.src = card.srcs[activeIndex];
+            if (card.imagePositions?.[activeIndex] !== undefined) {
+              img.style.objectPosition = card.imagePositions[activeIndex];
+            }
           };
           const previous = document.createElement("button");
           previous.className = "event-card-carousel-button event-card-carousel-button--previous";
@@ -287,6 +294,7 @@ function renderEvents(active: boolean): void {
       title: eventCard.title,
       description: eventCard.description,
       srcs: eventCard.images.map((image) => assetUrl(image)),
+      imagePositions: eventCard.imagePositions,
     })),
   );
 }

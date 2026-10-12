@@ -2,6 +2,7 @@ export type EventCard = {
   title: string;
   description: string;
   images: string[];
+  imagePositions?: string[];
 };
 
 export const events: EventCard[] = [
@@ -12,13 +13,14 @@ export const events: EventCard[] = [
   },
   {
     title: "ICPC 2026",
-    description: "Primera fecha de la competencia universitaria de programacion competitiva mas importante de la región. Donde se hace enfasis en el trabajo en equipo, la resolución de problemas algorítmicos y la eficiencia en la codificación.",
-    images: ["public/gallery/icpc_2026.webp"],
+    description: "Competencia universitaria de programación competitiva en la que clasificamos a la fase final de ICPC Guatemala y al Gran Premio de Centroamérica. La fase final aún no se ha disputado.",
+    images: ["public/gallery/icpc_2026.webp", "public/gallery/icpc-2026-finalist.webp", "public/gallery/icpc-2026-final-1.webp", "public/gallery/icpc-2026-final-2.webp"],
   },
   {
     title: "Cursor Hackathon 2026",
     description: "Hackaton organizada por the 502 Project, donde desarrollamos EcoScan y logramos ser uno de los 10 finalistas de la competencia.",
     images: ["public/gallery/cursor-hackaton-2026_1.webp", "public/gallery/cursor-hackaton-2026_2.webp"],
+    imagePositions: ["center top", "center center"],
   },
   {
     title: "Jack's Cave - Blog Entry 1",

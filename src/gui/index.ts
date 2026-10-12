@@ -210,11 +210,17 @@ function renderEvents(): HTMLElement {
       img.alt = event.title;
       img.loading = "lazy";
       img.draggable = false;
+      if (event.imagePositions?.[activeIndex] !== undefined) {
+        img.style.objectPosition = event.imagePositions[activeIndex];
+      }
       imgWrap.appendChild(img);
       if (event.images.length > 1) {
         const updateImage = (nextIndex: number): void => {
           activeIndex = (nextIndex + event.images.length) % event.images.length;
           img.src = assetUrl(event.images[activeIndex]);
+          if (event.imagePositions?.[activeIndex] !== undefined) {
+            img.style.objectPosition = event.imagePositions[activeIndex];
+          }
         };
         const previous = document.createElement("button");
         previous.className = "gui-event-card__carousel-button gui-event-card__carousel-button--previous";
