@@ -390,6 +390,39 @@ function renderProjectModalContent(project: Project): HTMLElement {
     img.alt = `${project.title} screenshot`;
     img.loading = "eager";
     img.draggable = false;
+    img.tabIndex = 0;
+    img.setAttribute("role", "button");
+    const openImageViewer = (): void => {
+      const viewer = el("div", "gui-image-viewer");
+      viewer.setAttribute("role", "dialog");
+      viewer.setAttribute("aria-label", `Imagen ampliada de ${project.title}`);
+      const close = (): void => {
+        viewer.remove();
+        document.removeEventListener("keydown", onKeyDown);
+      };
+      const onKeyDown = (event: KeyboardEvent): void => {
+        if (event.key === "Escape") close();
+      };
+      const closeButton = el("button", "gui-image-viewer__close", "×");
+      closeButton.type = "button";
+      closeButton.setAttribute("aria-label", "Cerrar imagen ampliada");
+      const fullImage = document.createElement("img");
+      fullImage.src = assetUrl(screenshot);
+      fullImage.alt = `${project.title} screenshot ampliada`;
+      viewer.append(closeButton, fullImage);
+      viewer.addEventListener("click", (event) => {
+        if (event.target === viewer || event.target === closeButton) close();
+      });
+      document.addEventListener("keydown", onKeyDown);
+      document.body.appendChild(viewer);
+    };
+    img.addEventListener("click", openImageViewer);
+    img.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openImageViewer();
+      }
+    });
     shotWrap.appendChild(img);
     shotsGrid.appendChild(shotWrap);
   }
