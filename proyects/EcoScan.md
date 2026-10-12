@@ -29,8 +29,8 @@ Sistema de deteccion y analisis de residuos que usa vision por IA para clasifica
 
 ## Capturas
 
-- `public/proyects/EcoScan1.png`
-- `public/proyects/EcoScan2.png`
+- `public/proyects/EcoScan1.webp`
+- `public/proyects/EcoScan2.webp`
 
 ## Repos
 

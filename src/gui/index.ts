@@ -234,7 +234,7 @@ function renderContact(): HTMLElement {
   // Profile photo
   const photoWrap = el("div", "gui-contact-photo-wrap");
   const photo = document.createElement("img");
-  photo.src = assetUrl("personal/me.jpg");
+  photo.src = assetUrl("personal/me.webp");
   photo.alt = "Marcelo Detlefsen";
   photo.className = "gui-contact-photo";
   photo.loading = "lazy";

@@ -42,6 +42,17 @@ function wallpapersPlugin() {
       const wallpapers = collectWallpapers(wallpapersDir, "wallpapers")
       return `export const wallpapers = ${JSON.stringify(wallpapers)};`
     },
+    configureServer(server: import("vite").ViteDevServer) {
+      server.watcher.add(wallpapersDir)
+      server.watcher.on("all", (_event, filePath) => {
+        if (filePath.startsWith(wallpapersDir)) {
+          const mod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_WALLPAPERS_ID)
+          if (mod) {
+            server.moduleGraph.invalidateModule(mod)
+          }
+        }
+      })
+    },
   }
 }
 

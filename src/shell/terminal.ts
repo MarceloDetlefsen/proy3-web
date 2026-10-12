@@ -46,7 +46,7 @@ const TECH_IMAGE_WIDTH = 980;
 const TECH_CHIP_HEIGHT = 28;
 const TECH_CHIP_GAP = 8;
 const TECH_IMAGE_PADDING = 8;
-const PROFILE_IMAGE_SRC = assetUrl("personal/me.jpg");
+const PROFILE_IMAGE_SRC = assetUrl("personal/me.webp");
 const DEFAULT_LINE_HEIGHT = 1.45;
 const DEFAULT_FONT_SIZE = 14;
 const FASTFETCH_FONT_SIZE = 12;
@@ -394,7 +394,25 @@ async function buildIipSequence(
     throw new Error(`No se pudo cargar ${src}`);
   }
 
-  const bytes = new Uint8Array(await response.arrayBuffer());
+  const blob = await response.blob();
+  let bytes: Uint8Array;
+
+  if (blob.type === "image/webp" || src.toLowerCase().includes(".webp")) {
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext("2d");
+    if (ctx === null) {
+      throw new Error("No se pudo obtener el contexto 2d del canvas.");
+    }
+    ctx.drawImage(bitmap, 0, 0);
+    bitmap.close();
+    bytes = await canvasToPngBytes(canvas);
+  } else {
+    bytes = new Uint8Array(await blob.arrayBuffer());
+  }
+
   return buildIipSequenceFromBytes(bytes, caption, options);
 }
 

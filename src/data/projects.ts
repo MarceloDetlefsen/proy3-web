@@ -34,10 +34,10 @@ export const projects: Project[] = [
       "https://github.com/MarceloDetlefsen/Back-Professor-Recommendation-System.git",
     ],
     screenshots: [
-      "public/proyects/BestProfessor1.png",
-      "public/proyects/BestProfessor2.png",
-      "public/proyects/BestProfessor3.png",
-      "public/proyects/BestProfessor4.png",
+      "public/proyects/BestProfessor1.webp",
+      "public/proyects/BestProfessor2.webp",
+      "public/proyects/BestProfessor3.webp",
+      "public/proyects/BestProfessor4.webp",
     ],
   },
   {
@@ -64,10 +64,10 @@ export const projects: Project[] = [
     ],
     deploy: "http://34.174.123.107:5173/index",
     screenshots: [
-      "public/proyects/BodegaDeLicores1.png",
-      "public/proyects/BodegaDeLicores2.png",
-      "public/proyects/BodegaDeLicores3.png",
-      "public/proyects/BodegaDeLicores4.png",
+      "public/proyects/BodegaDeLicores1.webp",
+      "public/proyects/BodegaDeLicores2.webp",
+      "public/proyects/BodegaDeLicores3.webp",
+      "public/proyects/BodegaDeLicores4.webp",
     ],
   },
   {
@@ -78,8 +78,8 @@ export const projects: Project[] = [
     stack: ["Python", "Pygame", "NumPy", "SciPy"],
     repos: ["https://github.com/eldmark/simulacionProyecto.git"],
     screenshots: [
-      "public/proyects/CRT1.png",
-      "public/proyects/CRT2.png",
+      "public/proyects/CRT1.webp",
+      "public/proyects/CRT2.webp",
     ],
   },
   {
@@ -93,8 +93,8 @@ export const projects: Project[] = [
       "https://github.com/24750Montenegro/Conneto-back.git",
     ],
     screenshots: [
-      "public/proyects/Conneto1.png",
-      "public/proyects/Conneto2.png",
+      "public/proyects/Conneto1.webp",
+      "public/proyects/Conneto2.webp",
     ],
   },
   {
@@ -113,8 +113,8 @@ export const projects: Project[] = [
     ],
     repos: ["https://github.com/jdivass/MP_Project.git"],
     screenshots: [
-      "public/proyects/DragonStats1.jpg",
-      "public/proyects/DragonStats2.jpg",
+      "public/proyects/DragonStats1.webp",
+      "public/proyects/DragonStats2.webp",
     ],
   },
   {
@@ -139,7 +139,7 @@ export const projects: Project[] = [
       "https://github.com/eldmark/backend-ecoscan.git",
     ],
     deploy: "https://frontend-trashclient.vercel.app/dashboard",
-    screenshots: ["public/proyects/EcoScan1.png", "public/proyects/EcoScan2.png"],
+    screenshots: ["public/proyects/EcoScan1.webp", "public/proyects/EcoScan2.webp"],
   },
   {
     name: "Galaga",
@@ -149,8 +149,8 @@ export const projects: Project[] = [
     stack: ["C++", "Ncurses", "ANSI colors"],
     repos: ["https://github.com/alemanuel18/Galaga_PMP.git"],
     screenshots: [
-      "public/proyects/Galaga1.png",
-      "public/proyects/Galaga2.png",
+      "public/proyects/Galaga1.webp",
+      "public/proyects/Galaga2.webp",
     ],
   },
   {
@@ -171,9 +171,9 @@ export const projects: Project[] = [
     ],
     repos: ["https://github.com/MarceloDetlefsen/proyecto2-db.git"],
     screenshots: [
-      "public/proyects/HeritageRecords1.png",
-      "public/proyects/HeritageRecords2.png",
-      "public/proyects/HeritageRecords3.png",
+      "public/proyects/HeritageRecords1.webp",
+      "public/proyects/HeritageRecords2.webp",
+      "public/proyects/HeritageRecords3.webp",
     ],
   },
   {
@@ -185,8 +185,8 @@ export const projects: Project[] = [
     repos: ["https://github.com/MarceloDetlefsen/Impostor.git"],
     deploy: "https://impostor-gamma-dusky.vercel.app/",
     screenshots: [
-      "public/proyects/Impostor1.jpg",
-      "public/proyects/Impostor2.jpg",
+      "public/proyects/Impostor1.webp",
+      "public/proyects/Impostor2.webp",
     ],
   },
   {
@@ -197,9 +197,9 @@ export const projects: Project[] = [
     stack: ["Java", "Maven", "JUnit"],
     repos: ["https://github.com/MarceloDetlefsen/InterpreteLisp.git"],
     screenshots: [
-      "public/proyects/InterpreteLisp1.png",
-      "public/proyects/InterpreteLisp2.png",
-      "public/proyects/InterpreteLisp3.png",
+      "public/proyects/InterpreteLisp1.webp",
+      "public/proyects/InterpreteLisp2.webp",
+      "public/proyects/InterpreteLisp3.webp",
     ],
   },
   {
@@ -214,8 +214,8 @@ export const projects: Project[] = [
     ],
     deploy: "https://frontend-proyecto1-web.vercel.app/index.html",
     screenshots: [
-      "public/proyects/MyTracker1.png",
-      "public/proyects/MyTracker2.png",
+      "public/proyects/MyTracker1.webp",
+      "public/proyects/MyTracker2.webp",
     ],
   },
 ]
