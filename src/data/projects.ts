@@ -66,6 +66,8 @@ export const projects: Project[] = [
     screenshots: [
       "public/proyects/BodegaDeLicores1.png",
       "public/proyects/BodegaDeLicores2.png",
+      "public/proyects/BodegaDeLicores3.png",
+      "public/proyects/BodegaDeLicores4.png",
     ],
   },
   {
