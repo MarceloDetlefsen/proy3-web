@@ -64,4 +64,9 @@ export const stack: StackItem[] = [
   { category: "Infraestructura", name: "Railway", percentage: 40 },
   { category: "Infraestructura", name: "Axios", percentage: 10 },
   { category: "Infraestructura", name: "Bun", percentage: 60 },
+
+  { category: "Linux", name: "QML", percentage: 75 },
+  { category: "Linux", name: "Shell", percentage: 80 },
+  { category: "Linux", name: "GLSL", percentage: 15 },
+  { category: "Linux", name: "Lua", percentage: 35 },
 ]
