@@ -137,7 +137,7 @@ type GalleryImage = {
 type EventGalleryCard = {
   title: string;
   description: string;
-  src?: string;
+  srcs: string[];
 };
 
 const terminal = bootTerminal({
@@ -218,14 +218,38 @@ function renderEventGallery(cards: EventGalleryCard[]): void {
       const article = document.createElement("article");
       article.className = "event-card";
 
-      if (card.src !== undefined) {
+      if (card.srcs.length > 0) {
+        let activeIndex = 0;
+        const carousel = document.createElement("div");
+        carousel.className = "event-card-carousel";
         const img = document.createElement("img");
-        img.src = card.src;
+        img.src = card.srcs[activeIndex];
         img.alt = card.title;
         img.loading = "lazy";
         img.draggable = false;
         img.className = "event-card-image";
-        article.appendChild(img);
+        carousel.appendChild(img);
+
+        if (card.srcs.length > 1) {
+          const updateImage = (nextIndex: number): void => {
+            activeIndex = (nextIndex + card.srcs.length) % card.srcs.length;
+            img.src = card.srcs[activeIndex];
+          };
+          const previous = document.createElement("button");
+          previous.className = "event-card-carousel-button event-card-carousel-button--previous";
+          previous.type = "button";
+          previous.textContent = "‹";
+          previous.setAttribute("aria-label", "Foto anterior");
+          previous.addEventListener("click", () => updateImage(activeIndex - 1));
+          const next = document.createElement("button");
+          next.className = "event-card-carousel-button event-card-carousel-button--next";
+          next.type = "button";
+          next.textContent = "›";
+          next.setAttribute("aria-label", "Foto siguiente");
+          next.addEventListener("click", () => updateImage(activeIndex + 1));
+          carousel.append(previous, next);
+        }
+        article.appendChild(carousel);
       } else {
         const placeholder = document.createElement("div");
         placeholder.className = "event-card-image event-card-image--placeholder";
@@ -262,7 +286,7 @@ function renderEvents(active: boolean): void {
     eventCards.map((eventCard) => ({
       title: eventCard.title,
       description: eventCard.description,
-      src: eventCard.image === undefined ? undefined : assetUrl(eventCard.image),
+      srcs: eventCard.images.map((image) => assetUrl(image)),
     })),
   );
 }

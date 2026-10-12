@@ -947,6 +947,7 @@
 }
 
 .gui-event-card__img-wrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
@@ -954,11 +955,17 @@
   flex-shrink: 0;
 }
 
+.gui-event-card__carousel-button:hover,
+.event-card-carousel-button:hover {
+  background: rgb(15 23 42 / 90%);
+}
+
 .gui-event-card__img-wrap img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   filter: saturate(0.92);
   transition: filter 0.22s ease, transform 0.3s ease;
 }

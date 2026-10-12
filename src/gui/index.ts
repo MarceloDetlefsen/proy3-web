@@ -202,14 +202,34 @@ function renderEvents(): HTMLElement {
   for (const event of events) {
     const card = el("article", "gui-event-card");
 
-    if (event.image !== undefined) {
+    if (event.images.length > 0) {
       const imgWrap = el("div", "gui-event-card__img-wrap");
+      let activeIndex = 0;
       const img = document.createElement("img");
-      img.src = assetUrl(event.image);
+      img.src = assetUrl(event.images[activeIndex]);
       img.alt = event.title;
       img.loading = "lazy";
       img.draggable = false;
       imgWrap.appendChild(img);
+      if (event.images.length > 1) {
+        const updateImage = (nextIndex: number): void => {
+          activeIndex = (nextIndex + event.images.length) % event.images.length;
+          img.src = assetUrl(event.images[activeIndex]);
+        };
+        const previous = document.createElement("button");
+        previous.className = "gui-event-card__carousel-button gui-event-card__carousel-button--previous";
+        previous.type = "button";
+        previous.textContent = "‹";
+        previous.setAttribute("aria-label", "Foto anterior");
+        previous.addEventListener("click", () => updateImage(activeIndex - 1));
+        const next = document.createElement("button");
+        next.className = "gui-event-card__carousel-button gui-event-card__carousel-button--next";
+        next.type = "button";
+        next.textContent = "›";
+        next.setAttribute("aria-label", "Foto siguiente");
+        next.addEventListener("click", () => updateImage(activeIndex + 1));
+        imgWrap.append(previous, next);
+      }
       card.appendChild(imgWrap);
     } else {
       const placeholder = el("div", "gui-event-card__img-wrap gui-event-card__img-wrap--placeholder");
